@@ -1,2 +1,2 @@
 # mdwater
-Molecular dynamics simulation of water
+Molecular dynamics simulation of water in electromagnetic fields
