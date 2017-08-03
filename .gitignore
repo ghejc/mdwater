@@ -1,3 +1,5 @@
 *.xyz
+*.pyc
 .ipynb_checkpoints
 variables.pickle
+transformations.py
