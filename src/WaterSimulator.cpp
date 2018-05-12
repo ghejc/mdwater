@@ -2,11 +2,17 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <cmath>
+#include "RotationMatrix.h"
 
 using OpenMM::Vec3; // so we can just say "Vec3" below
 
 static void
 myWritePDBFrame(int frameNum, double timeInPs, const std::vector<double>& atomPosInAng);
+
+static void
+myWriteXYZFrame(int frameNum, double timeInPs, const std::vector<double>& atomPosInAng);
+
 
 const double WaterSimulator::AtomicMassUnitsPerKg = 1.66054E-27;
 const double WaterSimulator::MeterPerNm = 1.0E9;
@@ -110,6 +116,11 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
     context    = new OpenMM::Context(*system, *integrator);
 }
 
+static double random()
+{
+    return rand()/(double)RAND_MAX;
+}
+
 void WaterSimulator::setRandomPositions(const double boxLengthInNm)
 {
     std::vector<Vec3> positions;
@@ -122,12 +133,16 @@ void WaterSimulator::setRandomPositions(const double boxLengthInNm)
         return;
     }
     size_t i = 0;
-    while( i < N ) {
-        Vec3 x(rand()/(double)RAND_MAX * boxLengthInNm,rand()/(double)RAND_MAX * boxLengthInNm, rand()/(double)RAND_MAX * boxLengthInNm);
+    while ( i < N ) {
+        Vec3 x( random(), random(), random());
+        x *= boxLengthInNm;
         i++;
         // rotate coords by a random angle around a random unit vector
+        Vec3 axis(random(), random(), random());
+        RotationMatrix m(random() * 2 * M_PI, axis);
         for (std::vector<Vec3>::iterator it = coords.begin(); it != coords.end(); it++) {
-            positions.push_back(*it + x);
+           Vec3 rot = m.dot(*it);
+           positions.push_back(rot + x);
         }
     }
     context->setPositions(positions);
@@ -144,12 +159,14 @@ void WaterSimulator::initSystemState(double startTemperatureInK, double densityI
     system->setDefaultPeriodicBoxVectors(Vec3(boxLengthInNm, 0, 0),
                                          Vec3(0, boxLengthInNm, 0),
                                          Vec3(0, 0, boxLengthInNm));
+    /*
     if( system->usesPeriodicBoundaryConditions() ) {
-        printf("REMARK  System uses periodic boundary conditions with a box of side length %5.3f nm\n", boxLengthInNm);
+        printf("System uses periodic boundary conditions with a box of side length %5.3f nm\n", boxLengthInNm);
     } else {
-        printf("REMARK  System does not use periodic boundary conditions\n");
+        printf("System does not use periodic boundary conditions\n");
     }
-    printf("REMARK  The box contains %d water molecules\n", N);
+    printf("The box contains %d water molecules\n", N);
+    */
 
     setRandomPositions(boxLengthInNm);
     context->setVelocitiesToTemperature(startTemperatureInK);
@@ -197,7 +214,7 @@ void WaterSimulator::run(double SimulationTimeInPs) {
     //  (1) Write the first line of the PDB file and the initial configuration.
     //  (2) Run silently entirely within OpenMM between reporting intervals.
     //  (3) Write a PDB frame when the time comes.
-    printf("REMARK  Using OpenMM platform %s\n", context->getPlatform().getName().c_str());
+    // printf("Using OpenMM platform %s\n", context->getPlatform().getName().c_str());
 
     std::vector<double> atomPositionsInAng; // x,y,z,x,y,z, ...
     const int NumSilentSteps = (int)(ReportIntervalInFs / StepSizeInFs + 0.5);
@@ -205,7 +222,7 @@ void WaterSimulator::run(double SimulationTimeInPs) {
     {
         double time;
         getSystemState(time, atomPositionsInAng);
-        myWritePDBFrame(frame, time, atomPositionsInAng);
+        myWriteXYZFrame(frame, time, atomPositionsInAng);
 
         if (time >= SimulationTimeInPs)
             break;
@@ -312,6 +329,24 @@ myWritePDBFrame(int frameNum, double timeInPs, const std::vector<double>& atomPo
         printf("  1.00  0.00            \n");       // end of pdb HETATM line
     }
     printf("ENDMDL\n"); // end of trajectory frame
+}
+
+//                               XYZ FILE WRITER
+static void
+myWriteXYZFrame(int frameNum, double timeInPs, const std::vector<double>& atomPosInAng)
+{
+    const char* atomNames[] = {"O", "H", "H"}; // cycle through these
+    int N = sizeof(atomNames)/sizeof(atomNames[0]);
+    printf("%d\n", atomPosInAng.size()/3 );
+    printf("frame=%d time=%.3f ps\n", frameNum, timeInPs);
+    for (int atom=0; atom < (int)atomPosInAng.size()/3; ++atom)
+    {
+        printf("%2s %8.3f%8.3f%8.3f\n",        // start of pdb HETATM line
+               atomNames[atom%N],
+               atomPosInAng[3*atom+0],
+               atomPosInAng[3*atom+1],
+               atomPosInAng[3*atom+2]);
+    }
 }
 
 // -----------------------------------------------------------------------------

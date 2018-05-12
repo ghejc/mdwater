@@ -17,6 +17,7 @@
 					<Add option="/EHs" />
 					<Add option="/Ox" />
 					<Add option="/W3" />
+					<Add option="-D_USE_MATH_DEFINES" />
 					<Add option="/DNDEBUG" />
 					<Add directory="C:/OpenMM/include" />
 					<Add directory="include" />
@@ -27,6 +28,8 @@
 				</Linker>
 			</Target>
 		</Build>
+		<Unit filename="include/Matrix3.h" />
+		<Unit filename="include/RotationMatrix.h" />
 		<Unit filename="include/WaterSimulator.h" />
 		<Unit filename="src/WaterSimulator.cpp" />
 		<Extensions>

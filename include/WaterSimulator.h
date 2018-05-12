@@ -1,5 +1,5 @@
-#ifndef WATER_SIMULATOR_H
-#define WATER_SIMULATOR_H
+#ifndef WATER_SIMULATOR_H_
+#define WATER_SIMULATOR_H_
 
 #include "OpenMM.h"
 
@@ -84,4 +84,4 @@ private:
     int AndersenThermostat_Index;
 };
 
-#endif // WATER_SIMULATOR_H
+#endif // WATER_SIMULATOR_H_
