@@ -6,6 +6,9 @@
 class WaterSimulator {
 public:
 
+    static const double AtomicMassUnitsPerKg;
+    static const double MeterPerNm;
+
     static const bool  UseConstraints = true;   // Should we constrain O-H bonds?
     static const double CutoffDistanceInAng;    // Angstroms
     static const double FrictionInPerPs; // collisions per picosecond
@@ -39,6 +42,8 @@ public:
     static const double M_charge;
     static const double M_sigma;
     static const double M_epsilon;
+    static const double O_weight;
+    static const double H_weight;
 
     // center of mass
     static const double X_mass;
@@ -63,7 +68,11 @@ public:
 
 private:
 
+    void setRandomPositions(const double boxLengthInNm);
+
     void addWaterMolecule();
+
+    void getCenterOfMassCoordinates(std::vector<OpenMM::Vec3> &coords);
 
     OpenMM::Context *context;
     OpenMM::System *system;
