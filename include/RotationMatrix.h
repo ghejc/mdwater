@@ -19,6 +19,7 @@ public:
     RotationMatrix(double angle, const Vec3 & rotationAxis) {
         double sina = sin(angle);
         double cosa = cos(angle);
+        // normalize axis vector
         double len = sqrt(rotationAxis.dot(rotationAxis));
         Vec3 rotationAxisUnitVector;
         if (len > 0.0) {
@@ -33,8 +34,7 @@ public:
         rotationAxisUnitVector *= sina;
         Matrix3 P(Vec3(0.0, - rotationAxisUnitVector[2], rotationAxisUnitVector[1]),
                   Vec3(rotationAxisUnitVector[2], 0.0, - rotationAxisUnitVector[0]),
-                  Vec3(- rotationAxisUnitVector[1], rotationAxisUnitVector[0], 0.0)
-                  );
+                  Vec3(- rotationAxisUnitVector[1], rotationAxisUnitVector[0], 0.0));
         R += P;
         data[0] = R[0];
         data[1] = R[1];

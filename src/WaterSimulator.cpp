@@ -22,7 +22,7 @@ const unsigned int NumberOfMolecules = 10;
 const double Temperature         = 300;    // Kelvins
 const double Density             = 997;    // kg/m^3
 const double StepSizeInFs        = 2;      // integration step size (fs)
-const double ReportIntervalInFs  = 100;    // how often to generate PDB frame (fs)
+const double ReportIntervalInFs  = 100;    // how often to generate PDB or XYZ frame (fs)
 const double SimulationTimeInPs  = 10;
 
 const double WaterSimulator::FrictionInPerPs     = 91.;    // collisions per picosecond
@@ -125,6 +125,7 @@ void WaterSimulator::setRandomPositions(const double boxLengthInNm)
 {
     std::vector<Vec3> positions;
     size_t N = context->getMolecules().size();
+    // relative coordinates of the atoms in the molecule
     std::vector<Vec3> coords;
     getCenterOfMassCoordinates(coords);
 
@@ -132,18 +133,31 @@ void WaterSimulator::setRandomPositions(const double boxLengthInNm)
         context->setPositions(coords);
         return;
     }
+    // number of divisions of the box length
+    size_t n = (size_t)std::max(1.0, ceil(pow(N,1.0/3.0)));
+    // cell size
+    double cellLengthInNm = boxLengthInNm / (double)n;
     size_t i = 0;
+    std::vector<size_t> cells;
     while ( i < N ) {
-        Vec3 x( random(), random(), random());
-        x *= boxLengthInNm;
-        i++;
-        // rotate coords by a random angle around a random unit vector
-        Vec3 axis(random(), random(), random());
-        RotationMatrix m(random() * 2 * M_PI, axis);
-        for (std::vector<Vec3>::iterator it = coords.begin(); it != coords.end(); it++) {
-           Vec3 rot = m.dot(*it);
-           positions.push_back(rot + x);
+        Vec3 randVec( random(), random(), random());
+        randVec *= n;
+        size_t cell = (size_t)randVec[0] + n * ((size_t)randVec[1] + n * (size_t)randVec[2]);
+        if (std::find(cells.begin(), cells.end(), cell) != cells.end()) {
+            continue;
         }
+        cells.push_back(cell);
+        randVec *= cellLengthInNm;
+
+        // rotate coordinates by a random angle around a random unit vector
+        Vec3 randAxis(random(), random(), random());
+        double randAngleInRad = random() * 2 * M_PI;
+        RotationMatrix m(randAngleInRad, randAxis);
+        for (std::vector<Vec3>::iterator it = coords.begin(); it != coords.end(); it++) {
+           Vec3 x = m.dot(*it);
+           positions.push_back(x + randVec);
+        }
+        i++;
     }
     context->setPositions(positions);
 
