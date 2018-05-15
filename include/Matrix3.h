@@ -36,6 +36,15 @@ public:
     }
 
     /**
+     * Create a Matrix3 from another matrix.
+     */
+    Matrix3(const Matrix3 &x) {
+        data[0] = x[0];
+        data[1] = x[1];
+        data[2] = x[2];
+    }
+
+    /**
      * Create a Matrix3 from an outer product of two vectors.
      */
     Matrix3(const Vec3 &x, const Vec3 &y) {

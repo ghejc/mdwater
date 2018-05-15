@@ -134,20 +134,23 @@ void WaterSimulator::setRandomPositions(const double boxLengthInNm)
         return;
     }
     // number of divisions of the box length
-    size_t n = (size_t)std::max(1.0, ceil(pow(N,1.0/3.0)));
+    size_t n = (size_t)std::max(1.0, ceil(pow(N, 1.0/3.0)));
     // cell size
     double cellLengthInNm = boxLengthInNm / (double)n;
     size_t i = 0;
     std::vector<size_t> cells;
     while ( i < N ) {
-        Vec3 randVec( random(), random(), random());
-        randVec *= n;
-        size_t cell = (size_t)randVec[0] + n * ((size_t)randVec[1] + n * (size_t)randVec[2]);
+        Vec3 randVec( floor(random()*n), floor(random()*n), floor(random()*n));
+        size_t cell = (size_t)(randVec[0] + n * (randVec[1] + n * randVec[2]));
         if (std::find(cells.begin(), cells.end(), cell) != cells.end()) {
             continue;
         }
         cells.push_back(cell);
         randVec *= cellLengthInNm;
+        double shift = 0.5 * cellLengthInNm;
+        randVec[0] += shift;
+        randVec[1] += shift;
+        randVec[2] += shift;
 
         // rotate coordinates by a random angle around a random unit vector
         Vec3 randAxis(random(), random(), random());
@@ -174,6 +177,11 @@ void WaterSimulator::initSystemState(double startTemperatureInK, double densityI
                                          Vec3(0, boxLengthInNm, 0),
                                          Vec3(0, 0, boxLengthInNm));
     /*
+    context->setPeriodicBoxVectors(Vec3(boxLengthInNm, 0, 0),
+                                   Vec3(0, boxLengthInNm, 0),
+                                   Vec3(0, 0, boxLengthInNm));
+    */
+    /*
     if( system->usesPeriodicBoundaryConditions() ) {
         printf("System uses periodic boundary conditions with a box of side length %5.3f nm\n", boxLengthInNm);
     } else {
@@ -189,7 +197,7 @@ void WaterSimulator::initSystemState(double startTemperatureInK, double densityI
 void WaterSimulator::getSystemState(double& timeInPs,
                                     std::vector<double>& atomPositionsInAng)
 {
-    const OpenMM::State state = context->getState(OpenMM::State::Positions, true);
+    const OpenMM::State state = context->getState(OpenMM::State::Positions, false);
     timeInPs = state.getTime(); // OpenMM time is in ps already
 
     // Copy only non-virtual OpenMM positions into output array and change units from nm to Angstroms.
