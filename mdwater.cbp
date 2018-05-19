@@ -28,9 +28,12 @@
 				</Linker>
 			</Target>
 		</Build>
+		<Unit filename="include/ForceField.h" />
+		<Unit filename="include/ForceFieldIntegrator.h" />
 		<Unit filename="include/Matrix3.h" />
 		<Unit filename="include/RotationMatrix.h" />
 		<Unit filename="include/WaterSimulator.h" />
+		<Unit filename="src/ForceFieldIntegrator.cpp" />
 		<Unit filename="src/WaterSimulator.cpp" />
 		<Extensions>
 			<code_completion />

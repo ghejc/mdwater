@@ -1,11 +1,12 @@
 #include "WaterSimulator.h"
+#include "ForceFieldIntegrator.h"
 #include <string>
 #include <vector>
 #include <cstdlib>
 #include <cmath>
 #include "RotationMatrix.h"
 
-using OpenMM::Vec3; // so we can just say "Vec3" below
+using OpenMM::Vec3;
 
 static void
 myWritePDBFrame(int frameNum, double timeInPs, const std::vector<double>& atomPosInAng);
@@ -13,17 +14,16 @@ myWritePDBFrame(int frameNum, double timeInPs, const std::vector<double>& atomPo
 static void
 myWriteXYZFrame(int frameNum, double timeInPs, const std::vector<double>& atomPosInAng);
 
-
 const double WaterSimulator::AtomicMassUnitsPerKg = 1.66054E-27;
 const double WaterSimulator::MeterPerNm = 1.0E9;
 
 //                     SIMULATION PARAMETERS
 const unsigned int NumberOfMolecules = 10;
-const double Temperature         = 300;    // Kelvins
-const double Density             = 997;    // kg/m^3
-const double StepSizeInFs        = 2;      // integration step size (fs)
-const double ReportIntervalInFs  = 100;    // how often to generate PDB or XYZ frame (fs)
-const double SimulationTimeInPs  = 10;
+const double Temperature             = 300;   // Kelvins
+const double Density                 = 997;   // kg/m^3
+const double StepSizeInFs            = 0.2;   // integration step size (fs)
+const double ReportIntervalInFs      = 100;    // how often to generate an output frame (fs)
+const double SimulationTimeInPs      = 10;
 
 const double WaterSimulator::FrictionInPerPs     = 91.;    // collisions per picosecond
 const double WaterSimulator::CutoffDistanceInAng = 10.;    // Angstroms
@@ -32,11 +32,6 @@ const double WaterSimulator::Coulomb14Scale = 0.833333;
 const double WaterSimulator::LennardJones14Scale = 0.5;
 
 // Values are from tip4pew.xml.
-// Oxygen
-const double WaterSimulator::O_mass             = 15.99943;
-const double WaterSimulator::O_charge           = 0.0;
-const double WaterSimulator::O_sigma            = 1;
-const double WaterSimulator::O_epsilon          = 0;
 
 // Hydrogen
 const double WaterSimulator::H_mass             = 1.007947;
@@ -45,18 +40,19 @@ const double WaterSimulator::H_sigma            = 1;
 const double WaterSimulator::H_epsilon          = 0;
 
 // Negative charge center
-const double WaterSimulator::M_mass             = 0;
+const double WaterSimulator::M_mass             = 0.5;
 const double WaterSimulator::M_charge           = -2 * H_charge;
 const double WaterSimulator::M_sigma            = 1;
 const double WaterSimulator::M_epsilon          = 0;
-const double WaterSimulator::O_weight           = 0.786646558;
-const double WaterSimulator::H_weight           = 0.106676721;
 
-// Center of mass
-const double WaterSimulator::X_mass             = 0;
-const double WaterSimulator::X_charge           = 0;
-const double WaterSimulator::X_sigma            = 0.316435;
-const double WaterSimulator::X_epsilon          = 0.680946;
+// Oxygen
+const double WaterSimulator::O_mass             = 15.99943 - M_mass;
+const double WaterSimulator::O_charge           = 0.0;
+const double WaterSimulator::O_sigma            = 0.316435;
+const double WaterSimulator::O_epsilon          = 0.680946;
+
+// Parameters for the O-M bonds.
+const double WaterSimulator::OM_nominalLengthInAng      = 0.15;
 
 // Parameters for the O-H bonds.
 const double WaterSimulator::OH_nominalLengthInAng      = 0.9572;
@@ -108,12 +104,18 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
     nonbond->setNonbondedMethod(OpenMM::NonbondedForce::CutoffPeriodic);
     nonbond->setCutoffDistance(CutoffDistanceInAng * OpenMM::NmPerAngstrom);
 
+    std::vector<double> charges;
     for (unsigned int i = 0; i < numOfMolecules; ++i) {
         addWaterMolecule();
-    }
+        charges.push_back(O_charge);
+        charges.push_back(H_charge);
+        charges.push_back(H_charge);
+        charges.push_back(M_charge);
+   }
 
-    integrator = new OpenMM::VerletIntegrator(StepSizeInFs * OpenMM::PsPerFs);
+    integrator = new ForceFieldIntegrator(StepSizeInFs * OpenMM::PsPerFs);
     context    = new OpenMM::Context(*system, *integrator);
+    integrator->addForceField(new ElectroMagneticForceField(charges));
 }
 
 static double random()
@@ -169,7 +171,7 @@ void WaterSimulator::setRandomPositions(const double boxLengthInNm)
 void WaterSimulator::initSystemState(double startTemperatureInK, double densityInKgPerM3)
 {
     size_t N = context->getMolecules().size();
-    double V = N * (O_mass + 2 * H_mass) * AtomicMassUnitsPerKg / densityInKgPerM3;
+    double V = N * (O_mass + 2 * H_mass + M_mass) * AtomicMassUnitsPerKg / densityInKgPerM3;
     const double boxLengthInNm = pow(V, 1./3) * MeterPerNm;
 
     // Create periodic box
@@ -203,7 +205,8 @@ void WaterSimulator::getSystemState(double& timeInPs,
     // Copy only non-virtual OpenMM positions into output array and change units from nm to Angstroms.
     const std::vector<Vec3>& positionsInNm = state.getPositions();
     size_t N = context->getMolecules().size();
-    atomPositionsInAng.resize(9 * N);
+    const int numberOfAtomsPerMolecule = 4; // no virtual sites
+    atomPositionsInAng.resize(3 * numberOfAtomsPerMolecule * N);
     int k = 0;
     for (int i = 0; i < (int)positionsInNm.size(); ++i) {
         if (!system->isVirtualSite(i)) {
@@ -221,14 +224,14 @@ void WaterSimulator::getCenterOfMassCoordinates(std::vector<Vec3> &coords)
     double angle_HO = HOH_nominalAngleInDeg * OpenMM::RadiansPerDegree / 2.0;
     Vec3 r_H1(-r_OH * sin(angle_HO), -r_OH * cos(angle_HO), 0);
     Vec3 r_H2(+r_OH * sin(angle_HO), -r_OH * cos(angle_HO), 0);
-    double M = O_mass + 2 * H_mass;
-    Vec3 r_X = r_O * O_mass/M + (r_H1 + r_H2) * H_mass/M;
-    Vec3 r_M = r_O * O_weight + (r_H1 + r_H2) * H_weight;
+    double M = O_mass + 2 * H_mass + M_mass;
+    double r_OM = OM_nominalLengthInAng * OpenMM::NmPerAngstrom;
+    Vec3 r_M(0,-r_OM,0);
+    Vec3 r_X = r_O * O_mass/M + (r_H1 + r_H2) * H_mass/M + r_M/M * M_mass;
     coords.push_back(r_O - r_X);
     coords.push_back(r_H1 - r_X);
     coords.push_back(r_H2 - r_X);
     coords.push_back(r_M - r_X);
-    coords.push_back(r_X - r_X);
 }
 
 void WaterSimulator::run(double SimulationTimeInPs) {
@@ -259,16 +262,7 @@ void WaterSimulator::addWaterMolecule() {
     int  oIndex = system->addParticle(O_mass); // O
     int h1Index = system->addParticle(H_mass); // H1
     int h2Index = system->addParticle(H_mass); // H2
-
-    // Add virtual sites
     int  mIndex = system->addParticle(M_mass); // M
-    OpenMM::VirtualSite *site = new OpenMM::ThreeParticleAverageSite(oIndex, h1Index, h2Index, O_weight, H_weight, H_weight);
-    system->setVirtualSite(mIndex, site);
-
-    int  xIndex = system->addParticle(X_mass); // X
-    const double M = O_mass + 2 * H_mass;
-    site = new OpenMM::ThreeParticleAverageSite(oIndex, h1Index, h2Index, O_mass/M, H_mass/M, H_mass/M);
-    system->setVirtualSite(xIndex, site);
 
     OpenMM::NonbondedForce &nonbond = (OpenMM::NonbondedForce &)system->getForce(NonbondedForce_Index);
     // Add atom charge, sigma, and stiffness to nonbonded force
@@ -289,11 +283,10 @@ void WaterSimulator::addWaterMolecule() {
         M_charge,
         M_sigma,
         M_epsilon);
-    nonbond.addParticle( // Center of mass
-        X_charge,
-        X_sigma,
-        X_epsilon
-        );
+
+    // Constrain O-M bond length
+    system->addConstraint(oIndex, mIndex,
+                          OM_nominalLengthInAng * OpenMM::NmPerAngstrom);
 
     // Constrain O-H bond lengths or use harmonic forces.
     if (UseConstraints)
@@ -338,7 +331,7 @@ void WaterSimulator::addWaterMolecule() {
 static void
 myWritePDBFrame(int frameNum, double timeInPs, const std::vector<double>& atomPosInAng)
 {
-    const char* atomNames[] = {" O  ", " H1 ", " H2 "}; // cycle through these
+    const char* atomNames[] = {" O  ", " H1 ", " H2 ", " M  "}; // cycle through these
     int N = sizeof(atomNames)/sizeof(atomNames[0]);
     printf("MODEL     %d\n", frameNum);
     printf("REMARK 250 time=%.3f picoseconds\n", timeInPs);
@@ -357,7 +350,7 @@ myWritePDBFrame(int frameNum, double timeInPs, const std::vector<double>& atomPo
 static void
 myWriteXYZFrame(int frameNum, double timeInPs, const std::vector<double>& atomPosInAng)
 {
-    const char* atomNames[] = {"O", "H", "H"}; // cycle through these
+    const char* atomNames[] = {"O", "H", "H", "M"}; // cycle through these
     int N = sizeof(atomNames)/sizeof(atomNames[0]);
     printf("%d\n", atomPosInAng.size()/3 );
     printf("frame=%d time=%.3f ps\n", frameNum, timeInPs);
