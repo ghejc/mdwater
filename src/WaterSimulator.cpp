@@ -40,7 +40,13 @@ const double WaterSimulator::H_sigma            = 1;
 const double WaterSimulator::H_epsilon          = 0;
 
 // Negative charge center
+#ifdef PARTICLE_M_IS_VIRTUAL
+const double WaterSimulator::M_mass             = 0;
+const double WaterSimulator::O_weight           = 0.786646558;
+const double WaterSimulator::H_weight           = 0.106676721;
+#else
 const double WaterSimulator::M_mass             = 0.5;
+#endif
 const double WaterSimulator::M_charge           = -2 * H_charge;
 const double WaterSimulator::M_sigma            = 1;
 const double WaterSimulator::M_epsilon          = 0;
@@ -205,7 +211,11 @@ void WaterSimulator::getSystemState(double& timeInPs,
     // Copy only non-virtual OpenMM positions into output array and change units from nm to Angstroms.
     const std::vector<Vec3>& positionsInNm = state.getPositions();
     size_t N = context->getMolecules().size();
+#ifdef PARTICLE_M_IS_VIRTUAL
+    const int numberOfAtomsPerMolecule = 3; // no virtual sites
+#else
     const int numberOfAtomsPerMolecule = 4; // no virtual sites
+#endif // PARTICLE_M_IS_VIRTUAL
     atomPositionsInAng.resize(3 * numberOfAtomsPerMolecule * N);
     int k = 0;
     for (int i = 0; i < (int)positionsInNm.size(); ++i) {
@@ -226,7 +236,11 @@ void WaterSimulator::getCenterOfMassCoordinates(std::vector<Vec3> &coords)
     Vec3 r_H2(+r_OH * sin(angle_HO), -r_OH * cos(angle_HO), 0);
     double M = O_mass + 2 * H_mass + M_mass;
     double r_OM = OM_nominalLengthInAng * OpenMM::NmPerAngstrom;
+#ifdef PARTICLE_M_IS_VIRTUAL
+    Vec3 r_M = r_O * O_weight + (r_H1 + r_H2) * H_weight;
+#else
     Vec3 r_M(0,-r_OM,0);
+#endif // PARTICLE_M_IS_VIRTUAL
     Vec3 r_X = r_O * O_mass/M + (r_H1 + r_H2) * H_mass/M + r_M/M * M_mass;
     coords.push_back(r_O - r_X);
     coords.push_back(r_H1 - r_X);
@@ -263,6 +277,11 @@ void WaterSimulator::addWaterMolecule() {
     int h1Index = system->addParticle(H_mass); // H1
     int h2Index = system->addParticle(H_mass); // H2
     int  mIndex = system->addParticle(M_mass); // M
+    // Add virtual sites
+#ifdef PARTICLE_M_IS_VIRTUAL
+    OpenMM::VirtualSite *site = new OpenMM::ThreeParticleAverageSite(oIndex, h1Index, h2Index, O_weight, H_weight, H_weight);
+    system->setVirtualSite(mIndex, site);
+#endif // PARTICLE_M_IS_VIRTUAL
 
     OpenMM::NonbondedForce &nonbond = (OpenMM::NonbondedForce &)system->getForce(NonbondedForce_Index);
     // Add atom charge, sigma, and stiffness to nonbonded force
@@ -285,8 +304,10 @@ void WaterSimulator::addWaterMolecule() {
         M_epsilon);
 
     // Constrain O-M bond length
+#ifndef PARTICLE_M_IS_VIRTUAL
     system->addConstraint(oIndex, mIndex,
                           OM_nominalLengthInAng * OpenMM::NmPerAngstrom);
+#endif // PARTICLE_M_IS_VIRTUAL
 
     // Constrain O-H bond lengths or use harmonic forces.
     if (UseConstraints)
@@ -331,7 +352,11 @@ void WaterSimulator::addWaterMolecule() {
 static void
 myWritePDBFrame(int frameNum, double timeInPs, const std::vector<double>& atomPosInAng)
 {
+#ifdef PARTICLE_M_IS_VIRTUAL
+    const char* atomNames[] = {" O  ", " H1 ", " H2 "}; // cycle through these
+#else
     const char* atomNames[] = {" O  ", " H1 ", " H2 ", " M  "}; // cycle through these
+#endif // PARTICLE_M_IS_VIRTUAL
     int N = sizeof(atomNames)/sizeof(atomNames[0]);
     printf("MODEL     %d\n", frameNum);
     printf("REMARK 250 time=%.3f picoseconds\n", timeInPs);
@@ -350,7 +375,11 @@ myWritePDBFrame(int frameNum, double timeInPs, const std::vector<double>& atomPo
 static void
 myWriteXYZFrame(int frameNum, double timeInPs, const std::vector<double>& atomPosInAng)
 {
+#ifdef PARTICLE_M_IS_VIRTUAL
+    const char* atomNames[] = {"O", "H", "H"}; // cycle through these
+#else
     const char* atomNames[] = {"O", "H", "H", "M"}; // cycle through these
+#endif // PARTICLE_M_IS_VIRTUAL
     int N = sizeof(atomNames)/sizeof(atomNames[0]);
     printf("%d\n", atomPosInAng.size()/3 );
     printf("frame=%d time=%.3f ps\n", frameNum, timeInPs);

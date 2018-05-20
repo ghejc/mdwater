@@ -23,6 +23,7 @@ public:
     void step(int steps);
 private:
     std::vector<Vec3> f;
+    Vec3 f_zero;
     std::vector<ForceField *> forceFields;
 };
 

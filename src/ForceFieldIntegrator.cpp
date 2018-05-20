@@ -4,6 +4,8 @@ ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(s
 
     addPerDofVariable("ff", 0);
 
+    // TODO: Velocity Verlet not ideal for Lorentz forces. Replace by an integrator,
+    //       where x and v are at equal times
     addUpdateContextState();
     addPerDofVariable("x1", 0);
     addComputePerDof("v", "v + 0.5*dt*(f+ff)/m");
@@ -17,7 +19,9 @@ ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(s
 void ForceFieldIntegrator::step(int steps) {
     if (owner != nullptr) {
         int numParticles = owner->getSystem().getNumParticles();
-        f.resize(numParticles);
+        if (f.size() != numParticles) {
+            f.resize(numParticles);
+        }
     }
 
     for (int i = 0; i < steps; i++) {
@@ -25,6 +29,9 @@ void ForceFieldIntegrator::step(int steps) {
         const OpenMM::State state = owner->getState(OpenMM::State::Positions|OpenMM::State::Velocities);
         const std::vector<Vec3> &x = state.getPositions();
         const std::vector<Vec3> &v = state.getVelocities();
+
+        /* reset forcefields */
+        std::fill(f.begin(), f.end(), f_zero);
 
         /* evaluate all force fields */
         for(std::vector<ForceField *>::iterator it = forceFields.begin(); it != forceFields.end(); it++) {

@@ -6,6 +6,8 @@
 #include "ForceFieldIntegrator.h"
 #include <cmath>
 
+//#define PARTICLE_M_IS_VIRTUAL
+
 class WaterSimulator {
 public:
 
@@ -48,6 +50,10 @@ public:
     static const double M_charge;
     static const double M_sigma;
     static const double M_epsilon;
+#ifdef PARTICLE_M_IS_VIRTUAL
+    static const double O_weight;
+    static const double H_weight;
+#endif
 
     WaterSimulator(unsigned int numOfMolecules,
                       double temperature = 300,
@@ -111,8 +117,9 @@ public:
 
     virtual void eval(double t, const std::vector<Vec3> &x, const std::vector<Vec3> &v, std::vector<Vec3> &f) {
         for (size_t i = 0; i < v.size(); i++) {
-            // calculate the Lorentz force on each particle
-            f[i] = (E(t,x[i]) + v[i].cross(B(t,x[i]))) * q[i];
+            // TODO: not correct for virtual particles
+            // calculate and add the Lorentz force on each particle
+            f[i] += (E(t,x[i]) + v[i].cross(B(t,x[i]))) * q[i];
         }
     };
 
