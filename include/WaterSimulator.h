@@ -6,7 +6,7 @@
 #include "ForceFieldIntegrator.h"
 #include <cmath>
 
-//#define PARTICLE_M_IS_VIRTUAL
+#define PARTICLE_M_IS_VIRTUAL
 
 class WaterSimulator {
 public:
@@ -117,9 +117,8 @@ public:
 
     virtual void eval(double t, const std::vector<Vec3> &x, const std::vector<Vec3> &v, std::vector<Vec3> &f) {
         for (size_t i = 0; i < v.size(); i++) {
-            // TODO: not correct for virtual particles
-            // calculate and add the Lorentz force on each particle
-            f[i] += (E(t,x[i]) + v[i].cross(B(t,x[i]))) * q[i];
+             // apply Lorentz force on particle i
+            applyForce(f, i, (E(t,x[i]) + v[i].cross(B(t,x[i]))) * q[i]);
         }
     };
 

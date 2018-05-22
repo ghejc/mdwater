@@ -21,6 +21,9 @@ public:
         return forceFields.size() - 1;
     };
     void step(int steps);
+    void applyForceField(int particleIndex, Vec3 force) {
+        f[particleIndex] += force;
+    };
 private:
     std::vector<Vec3> f;
     Vec3 f_zero;

@@ -22,7 +22,7 @@ const unsigned int NumberOfMolecules = 10;
 const double Temperature             = 300;   // Kelvins
 const double Density                 = 997;   // kg/m^3
 const double StepSizeInFs            = 0.2;   // integration step size (fs)
-const double ReportIntervalInFs      = 100;    // how often to generate an output frame (fs)
+const double ReportIntervalInFs      = 100;   // how often to generate an output frame (fs)
 const double SimulationTimeInPs      = 10;
 
 const double WaterSimulator::FrictionInPerPs     = 91.;    // collisions per picosecond
@@ -42,8 +42,8 @@ const double WaterSimulator::H_epsilon          = 0;
 // Negative charge center
 #ifdef PARTICLE_M_IS_VIRTUAL
 const double WaterSimulator::M_mass             = 0;
-const double WaterSimulator::O_weight           = 0.786646558;
 const double WaterSimulator::H_weight           = 0.106676721;
+const double WaterSimulator::O_weight           = 1 - 2 * H_weight;
 #else
 const double WaterSimulator::M_mass             = 0.5;
 #endif
@@ -117,7 +117,7 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
         charges.push_back(H_charge);
         charges.push_back(H_charge);
         charges.push_back(M_charge);
-   }
+    }
 
     integrator = new ForceFieldIntegrator(StepSizeInFs * OpenMM::PsPerFs);
     context    = new OpenMM::Context(*system, *integrator);

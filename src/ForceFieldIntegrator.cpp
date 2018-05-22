@@ -39,6 +39,23 @@ void ForceFieldIntegrator::step(int steps) {
                 (*it)->eval(state.getTime(),x,v,f);
             }
         }
+
+        /* Check all forces applied to virtual particles and distribute it to the connected real particles.
+           Only ThreeParticleAverageSite are supported.
+        */
+        for(int i = 0; i < f.size(); i++) {
+            if (owner->getSystem().isVirtualSite(i)) {
+                const OpenMM::VirtualSite &v = owner->getSystem().getVirtualSite(i);
+                if (dynamic_cast<const OpenMM::ThreeParticleAverageSite*>(&v) != NULL) {
+                    const OpenMM::ThreeParticleAverageSite &site = dynamic_cast<const OpenMM::ThreeParticleAverageSite &>(v);
+                    for(int j = 0; j < site.getNumParticles(); j++) {
+                        int particleIndex = site.getParticle(j);
+                        f[particleIndex] += f[i] * site.getWeight(j);
+                    }
+                    f[i] = f_zero;
+                }
+            }
+        }
         setPerDofVariableByName("ff", f);
         CustomIntegrator::step(1);
     }
