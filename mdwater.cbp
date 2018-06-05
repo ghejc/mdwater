@@ -11,7 +11,7 @@
 				<Option working_dir="bin/Release" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
-				<Option compiler="microsoft_visual_c_2010_64-bit" />
+				<Option compiler="microsoft_visual_c_2015_64-bit" />
 				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="/EHs" />
