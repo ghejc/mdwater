@@ -1,5 +1,6 @@
 #include "ForceFieldIntegrator.h"
 
+/*
 ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(stepSize) {
 
     addPerDofVariable("ff", 0);
@@ -13,7 +14,64 @@ ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(s
     addComputePerDof("x1", "x");
     addConstrainPositions();
     addComputePerDof("v", "v + 0.5*dt*(f+ff)/m + (x-x1)/dt");
-    addConstrainVelocities();
+    // TODO: addConstrainVelocities removes non-zero velocity of center of gravity
+    // addConstrainVelocities();
+}
+*/
+ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(stepSize) {
+
+    addPerDofVariable("ff", 0);
+    addPerDofVariable("x1", 0); /* x(t) */
+    addPerDofVariable("x2", 0); /* x(t-dt/2) */
+    addPerDofVariable("v1", 0); /* v(t) */
+    addPerDofVariable("v2", 0); /* v(t-dt/2) */
+    addPerDofVariable("xold", 0);
+    addGlobalVariable("steps", 0);
+
+    /* Euler integrator for the first 3 steps */
+    beginIfBlock("steps <= 2");
+
+    addUpdateContextState();
+    addComputePerDof("v", "v + dt*(f+ff)/m");
+    addComputePerDof("x", "x + dt*v");
+    addComputePerDof("xold", "x");
+    addConstrainPositions();
+    addComputePerDof("v", "v + (x-xold)/dt");
+    addComputePerDof("x2", "x1");
+    addComputePerDof("x1", "x");
+    addComputePerDof("v2", "v1");
+    addComputePerDof("v1", "v");
+
+    endBlock();
+
+    /* Two-Step Leap-frog Velocity Verlet integrator for the remaining steps */
+    beginIfBlock("steps > 2");
+
+    /* calculate x(t+dt/2),v(t+dt/2) */
+    addUpdateContextState();
+    addComputePerDof("x", "2*x1 - x2 + 0.25*dt*dt*(f+ff)/m");
+    addComputePerDof("v", "v2 + dt*(f+ff)/m");
+    addComputePerDof("xold", "x");
+    addConstrainPositions();
+    addComputePerDof("v", "v + (x-xold)/dt");
+    addComputePerDof("x2", "x1");
+    addComputePerDof("x1", "x");
+    addComputePerDof("v2", "v1");
+    addComputePerDof("v1", "v");
+
+    /* calculate x(t+dt),v(t+dt) */
+    addUpdateContextState();
+    addComputePerDof("x", "2*x1 - x2 + 0.25*dt*dt*(f+ff)/m");
+    addComputePerDof("v", "v2 + dt*(f+ff)/m");
+    addComputePerDof("xold", "x");
+    addConstrainPositions();
+    addComputePerDof("v", "v + (x-xold)/dt");
+    addComputePerDof("x2", "x1");
+    addComputePerDof("x1", "x");
+    addComputePerDof("v2", "v1");
+    addComputePerDof("v1", "v");
+
+    endBlock();
 }
 
 void ForceFieldIntegrator::step(int steps) {
@@ -57,6 +115,7 @@ void ForceFieldIntegrator::step(int steps) {
             }
         }
         setPerDofVariableByName("ff", f);
+        setGlobalVariableByName("steps", i);
         CustomIntegrator::step(1);
     }
 }

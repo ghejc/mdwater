@@ -54,7 +54,7 @@ public:
     }
 
     /**
-     * Create a Matrix3 with specified x, y, and z vectors.
+     * Create a Matrix3 with specified x, y and z vectors.
      */
     Matrix3(const Vec3 &x, const Vec3 &y, const Vec3 &z) {
         data[0] = x;

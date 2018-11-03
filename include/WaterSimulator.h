@@ -50,7 +50,7 @@ public:
     static const double M_charge;
     static const double M_sigma;
     static const double M_epsilon;
-#ifdef PARTICLE_M_IS_VIRTUAL
+#if defined(PARTICLE_M_IS_VIRTUAL)
     static const double O_weight;
     static const double H_weight;
 #endif

@@ -41,7 +41,7 @@ const double WaterSimulator::H_sigma            = 1;
 const double WaterSimulator::H_epsilon          = 0;
 
 // Negative charge center
-#ifdef PARTICLE_M_IS_VIRTUAL
+#if defined(PARTICLE_M_IS_VIRTUAL)
 const double WaterSimulator::M_mass             = 0;
 const double WaterSimulator::H_weight           = 0.106676721;
 const double WaterSimulator::O_weight           = 1 - 2 * H_weight;
@@ -212,7 +212,7 @@ void WaterSimulator::getSystemState(double& timeInPs,
     // Copy only non-virtual OpenMM positions into output array and change units from nm to Angstroms.
     const std::vector<Vec3>& positionsInNm = state.getPositions();
     size_t N = context->getMolecules().size();
-#ifdef PARTICLE_M_IS_VIRTUAL
+#if defined(PARTICLE_M_IS_VIRTUAL)
     const int numberOfAtomsPerMolecule = 3; // no virtual sites
 #else
     const int numberOfAtomsPerMolecule = 4; // no virtual sites
@@ -382,7 +382,7 @@ myWriteXYZFrame(int frameNum, double timeInPs, const std::vector<double>& atomPo
     const char* atomNames[] = {"O", "H", "H", "M"}; // cycle through these
 #endif // PARTICLE_M_IS_VIRTUAL
     int N = sizeof(atomNames)/sizeof(atomNames[0]);
-    printf("%d\n", atomPosInAng.size()/3 );
+    printf("%zd\n", atomPosInAng.size()/3 );
     printf("frame=%d time=%.3f ps\n", frameNum, timeInPs);
     for (int atom=0; atom < (int)atomPosInAng.size()/3; ++atom)
     {
