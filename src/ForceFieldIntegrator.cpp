@@ -4,16 +4,17 @@
 ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(stepSize) {
 
     addPerDofVariable("ff", 0);
+    addGlobalVariable("num_steps", 0);
+    addPerDofVariable("xold", 0);
 
     // TODO: Velocity Verlet not ideal for Lorentz forces. Replace by an integrator,
     //       where x and v are at equal times
     addUpdateContextState();
-    addPerDofVariable("x1", 0);
     addComputePerDof("v", "v + 0.5*dt*(f+ff)/m");
     addComputePerDof("x", "x + dt*v");
-    addComputePerDof("x1", "x");
+    addComputePerDof("xold", "x");
     addConstrainPositions();
-    addComputePerDof("v", "v + 0.5*dt*(f+ff)/m + (x-x1)/dt");
+    addComputePerDof("v", "v + 0.5*dt*(f+ff)/m + (x-xold)/dt");
     // TODO: addConstrainVelocities removes non-zero velocity of center of gravity
     // addConstrainVelocities();
 }
@@ -26,10 +27,10 @@ ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(s
     addPerDofVariable("v1", 0); /* v(t) */
     addPerDofVariable("v2", 0); /* v(t-dt/2) */
     addPerDofVariable("xold", 0);
-    addGlobalVariable("steps", 0);
+    addGlobalVariable("num_steps", 0);
 
     /* Euler integrator for the first 3 steps */
-    beginIfBlock("steps <= 2");
+    beginIfBlock("num_steps <= 2");
 
     addUpdateContextState();
     addComputePerDof("v", "v + dt*(f+ff)/m");
@@ -45,7 +46,7 @@ ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(s
     endBlock();
 
     /* Two-Step Leap-frog Velocity Verlet integrator for the remaining steps */
-    beginIfBlock("steps > 2");
+    beginIfBlock("num_steps > 2");
 
     /* calculate x(t+dt/2),v(t+dt/2) */
     addUpdateContextState();
@@ -72,6 +73,8 @@ ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(s
     addComputePerDof("v1", "v");
 
     endBlock();
+
+    addComputeGlobal("num_steps", "num_steps + 1");
 }
 
 void ForceFieldIntegrator::step(int steps) {
@@ -82,7 +85,7 @@ void ForceFieldIntegrator::step(int steps) {
         }
     }
 
-    for (int i = 0; i < steps; i++) {
+    for (int n = 0; n < steps; n++) {
         /* get the current positions and velocities */
         const OpenMM::State state = owner->getState(OpenMM::State::Positions|OpenMM::State::Velocities);
         const std::vector<Vec3> &x = state.getPositions();
@@ -115,7 +118,6 @@ void ForceFieldIntegrator::step(int steps) {
             }
         }
         setPerDofVariableByName("ff", f);
-        setGlobalVariableByName("steps", i);
         CustomIntegrator::step(1);
     }
 }
