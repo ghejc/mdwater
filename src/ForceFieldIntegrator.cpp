@@ -1,9 +1,11 @@
 #include "ForceFieldIntegrator.h"
 
-ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(stepSize) {
+LorenzForceFieldIntegrator::LorenzForceFieldIntegrator(double stepSize) : ForceFieldIntegrator(stepSize) {
+
+    addForceField(new ElectricForceField());
+    addForceField(new MagneticForceField());
 
     addPerDofVariable("ff", 0);
-    addGlobalVariable("num_steps", 0);
     addPerDofVariable("xold", 0);
 
     // TODO: Velocity Verlet not ideal for Lorentz forces.
@@ -15,76 +17,10 @@ ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(s
     // TODO: ff should be recalculated here with new positions and velocities
     addComputePerDof("v", "v + 0.5*dt*(f+ff)/m + (x-xold)/dt");
     addConstrainVelocities();
-
-    addComputeGlobal("num_steps", "num_steps + 1");
 }
-#if 0
-ForceFieldIntegrator::ForceFieldIntegrator(double stepSize) : CustomIntegrator(stepSize) {
 
-    addPerDofVariable("ff", 0);
-    addPerDofVariable("x1", 0); /* x(t) */
-    addPerDofVariable("x2", 0); /* x(t-dt/2) */
-    addPerDofVariable("v1", 0); /* v(t) */
-    addPerDofVariable("v2", 0); /* v(t-dt/2) */
-    addPerDofVariable("a", 0);  /* a(t) */
-    addPerDofVariable("xold", 0);
-    addGlobalVariable("num_steps", 0);
-
-    /* Euler integrator for the first 3 steps */
-    beginIfBlock("num_steps <= 2");
-
-    addUpdateContextState();
-    addComputePerDof("a", "(f+ff)/m");
-    addComputePerDof("v", "v + a*dt");
-    addComputePerDof("x", "x + dt*v");
-    addComputePerDof("xold", "x");
-    addConstrainPositions();
-    addComputePerDof("v", "v + (x-xold)/dt");
-    addConstrainVelocities();
-    addComputePerDof("x2", "x1");
-    addComputePerDof("x1", "x");
-    addComputePerDof("v2", "v1");
-    addComputePerDof("v1", "v");
-
-    endBlock();
-
-    /* Two-Step Leap-frog Velocity Verlet integrator for the remaining steps */
-    beginIfBlock("num_steps > 2");
-
-    /* calculate x(t+dt/2),v(t+dt/2) */
-    addUpdateContextState();
-    addComputePerDof("a", "(f+ff)/m");
-    addComputePerDof("x", "2*x1 - x2 + 0.25*dt*dt*a");
-    addComputePerDof("v", "v2 + dt*a");
-    addComputePerDof("xold", "x");
-    addConstrainPositions();
-    addComputePerDof("v", "v + (x-xold)/dt");
-    addConstrainVelocities();
-    addComputePerDof("x2", "x1");
-    addComputePerDof("x1", "x");
-    addComputePerDof("v2", "v1");
-    addComputePerDof("v1", "v");
-
-    /* calculate x(t+dt),v(t+dt) */
-    addUpdateContextState();
-    addComputePerDof("a", "(f+ff)/m");
-    addComputePerDof("x", "2*x1 - x2 + 0.25*dt*dt*a");
-    addComputePerDof("v", "v2 + dt*a");
-    addComputePerDof("xold", "x");
-    addConstrainPositions();
-    addComputePerDof("v", "v + (x-xold)/dt");
-    addConstrainVelocities();
-    addComputePerDof("x2", "x1");
-    addComputePerDof("x1", "x");
-    addComputePerDof("v2", "v1");
-    addComputePerDof("v1", "v");
-
-    endBlock();
-
-    addComputeGlobal("num_steps", "num_steps + 1");
-}
-#endif
-void ForceFieldIntegrator::step(int steps) {
+void LorenzForceFieldIntegrator::step(int steps) {
+    std::vector<Vec3> f;
     if (owner != nullptr) {
         int numParticles = owner->getSystem().getNumParticles();
         if (f.size() != numParticles) {
@@ -104,12 +40,13 @@ void ForceFieldIntegrator::step(int steps) {
         /* evaluate all force fields */
         for(std::vector<ForceField *>::iterator it = forceFields.begin(); it != forceFields.end(); it++) {
             if (*it != nullptr) {
-                (*it)->eval(state.getTime(),x,v,f);
+                (*it)->eval(particleIndex, state.getTime(),x,v,f);
             }
+            particleIndex++;
         }
 
         /* Check all forces applied to virtual particles and distribute it to the connected real particles.
-           Only ThreeParticleAverageSite are supported.
+           Only ThreeParticleAverageSite and TwoParticleAverageSite are supported.
         */
         for(int i = 0; i < f.size(); i++) {
             if (owner->getSystem().isVirtualSite(i)) {
@@ -121,10 +58,17 @@ void ForceFieldIntegrator::step(int steps) {
                         f[particleIndex] += f[i] * site.getWeight(j);
                     }
                     f[i] = f_zero;
+                } else if (dynamic_cast<const OpenMM::TwoParticleAverageSite*>(&v) != NULL) {
+                    const OpenMM::TwoParticleAverageSite &site = dynamic_cast<const OpenMM::TwoParticleAverageSite &>(v);
+                    for(int j = 0; j < site.getNumParticles(); j++) {
+                        int particleIndex = site.getParticle(j);
+                        f[particleIndex] += f[i] * site.getWeight(j);
+                    }
+                    f[i] = f_zero;
                 }
             }
         }
-        setPerDofVariableByName("ff", f);
+        setPerDofVariableByName("fe", f);
         CustomIntegrator::step(1);
     }
 }

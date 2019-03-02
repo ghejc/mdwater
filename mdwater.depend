@@ -1,0 +1,398 @@
+# depslib dependency file v1.0
+1551567496 source:c:\my workplace\my projects\autonomous underwater robot swarm\electromagnetic propulsion system\simulation\mdwater\src\watersimulator.cpp
+	"WaterSimulator.h"
+	"LorenzForceFieldIntegrator.h"
+	<string>
+	<vector>
+	<cstdlib>
+	<algorithm>
+	<cmath>
+	"RotationMatrix.h"
+
+1551566706 c:\my workplace\my projects\autonomous underwater robot swarm\electromagnetic propulsion system\simulation\mdwater\include\watersimulator.h
+	"OpenMM.h"
+	"ForceField.h"
+	"ForceFieldIntegrator.h"
+	<cmath>
+
+1551318661 c:\openmm\include\openmm.h
+	"openmm/AndersenThermostat.h"
+	"openmm/BrownianIntegrator.h"
+	"openmm/CMAPTorsionForce.h"
+	"openmm/CMMotionRemover.h"
+	"openmm/CompoundIntegrator.h"
+	"openmm/CustomBondForce.h"
+	"openmm/CustomCentroidBondForce.h"
+	"openmm/CustomCompoundBondForce.h"
+	"openmm/CustomAngleForce.h"
+	"openmm/CustomTorsionForce.h"
+	"openmm/CustomExternalForce.h"
+	"openmm/CustomCVForce.h"
+	"openmm/CustomGBForce.h"
+	"openmm/CustomHbondForce.h"
+	"openmm/CustomIntegrator.h"
+	"openmm/CustomManyParticleForce.h"
+	"openmm/CustomNonbondedForce.h"
+	"openmm/Force.h"
+	"openmm/GayBerneForce.h"
+	"openmm/GBSAOBCForce.h"
+	"openmm/HarmonicAngleForce.h"
+	"openmm/HarmonicBondForce.h"
+	"openmm/Integrator.h"
+	"openmm/LangevinIntegrator.h"
+	"openmm/LocalEnergyMinimizer.h"
+	"openmm/MonteCarloAnisotropicBarostat.h"
+	"openmm/MonteCarloBarostat.h"
+	"openmm/MonteCarloMembraneBarostat.h"
+	"openmm/NonbondedForce.h"
+	"openmm/Context.h"
+	"openmm/OpenMMException.h"
+	"openmm/PeriodicTorsionForce.h"
+	"openmm/RBTorsionForce.h"
+	"openmm/RMSDForce.h"
+	"openmm/State.h"
+	"openmm/System.h"
+	"openmm/TabulatedFunction.h"
+	"openmm/Units.h"
+	"openmm/VariableLangevinIntegrator.h"
+	"openmm/VariableVerletIntegrator.h"
+	"openmm/Vec3.h"
+	"openmm/VerletIntegrator.h"
+	"openmm/VirtualSite.h"
+	"openmm/Platform.h"
+	"openmm/serialization/XmlSerializer.h"
+
+1551318661 c:\openmm\include\openmm\andersenthermostat.h
+	"Force.h"
+	<string>
+	"internal/windowsExport.h"
+	"openmm/internal/OSRngSeed.h"
+
+1551318661 c:\openmm\include\openmm\force.h
+	"internal/windowsExport.h"
+
+1551318663 c:\openmm\include\openmm\internal\windowsexport.h
+
+1551318663 c:\openmm\include\openmm\internal\osrngseed.h
+	"windowsExport.h"
+
+1551319463 c:\openmm\include\openmm\brownianintegrator.h
+	"Integrator.h"
+	"openmm/Kernel.h"
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\integrator.h
+	"State.h"
+	"Vec3.h"
+	<map>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\state.h
+	"Vec3.h"
+	<map>
+	<string>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\vec3.h
+	<cassert>
+	<iosfwd>
+
+1551319718 c:\openmm\include\openmm\kernel.h
+	"KernelImpl.h"
+	"openmm/internal/windowsExport.h"
+
+1551319718 c:\openmm\include\openmm\kernelimpl.h
+	"Platform.h"
+	<string>
+	<cassert>
+	"openmm/internal/windowsExport.h"
+
+1551319718 c:\openmm\include\openmm\platform.h
+	<map>
+	<string>
+	<vector>
+	"openmm/internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\cmaptorsionforce.h
+	"Force.h"
+	"Vec3.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\cmmotionremover.h
+	"Force.h"
+	<string>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\compoundintegrator.h
+	"Integrator.h"
+	"openmm/Kernel.h"
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\custombondforce.h
+	"Force.h"
+	"Vec3.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\customcentroidbondforce.h
+	"TabulatedFunction.h"
+	"Force.h"
+	"Vec3.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\tabulatedfunction.h
+	"internal/windowsExport.h"
+	<vector>
+
+1551318661 c:\openmm\include\openmm\customcompoundbondforce.h
+	"TabulatedFunction.h"
+	"Force.h"
+	"Vec3.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\customangleforce.h
+	"Force.h"
+	"Vec3.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\customtorsionforce.h
+	"Force.h"
+	"Vec3.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\customexternalforce.h
+	"Force.h"
+	"Vec3.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\customcvforce.h
+	"Force.h"
+	"TabulatedFunction.h"
+	"internal/windowsExport.h"
+	<string>
+	<vector>
+
+1551318661 c:\openmm\include\openmm\customgbforce.h
+	"TabulatedFunction.h"
+	"Force.h"
+	"Vec3.h"
+	<map>
+	<set>
+	<utility>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\customhbondforce.h
+	"TabulatedFunction.h"
+	"Force.h"
+	"Vec3.h"
+	<map>
+	<set>
+	<utility>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\customintegrator.h
+	"Integrator.h"
+	"TabulatedFunction.h"
+	"Vec3.h"
+	"openmm/Kernel.h"
+	"internal/windowsExport.h"
+	<string>
+	<vector>
+
+1551318661 c:\openmm\include\openmm\custommanyparticleforce.h
+	"Force.h"
+	"TabulatedFunction.h"
+	"internal/windowsExport.h"
+	<set>
+	<string>
+	<vector>
+
+1551318661 c:\openmm\include\openmm\customnonbondedforce.h
+	"TabulatedFunction.h"
+	"Force.h"
+	"Vec3.h"
+	<map>
+	<set>
+	<utility>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\gayberneforce.h
+	"Context.h"
+	"Force.h"
+	<map>
+	<utility>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\context.h
+	"Integrator.h"
+	"State.h"
+	"System.h"
+	<iosfwd>
+	<map>
+	<string>
+	<vector>
+	"internal/windowsExport.h"
+	"internal/OSRngSeed.h"
+
+1551318662 c:\openmm\include\openmm\system.h
+	"Vec3.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\gbsaobcforce.h
+	"Force.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\harmonicangleforce.h
+	"Force.h"
+	"Vec3.h"
+	<map>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318661 c:\openmm\include\openmm\harmonicbondforce.h
+	"Force.h"
+	"Vec3.h"
+	<map>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\langevinintegrator.h
+	"Integrator.h"
+	"openmm/Kernel.h"
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\localenergyminimizer.h
+	"Context.h"
+
+1551318662 c:\openmm\include\openmm\montecarloanisotropicbarostat.h
+	"Force.h"
+	"Vec3.h"
+	<string>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\montecarlobarostat.h
+	"Force.h"
+	<string>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\montecarlomembranebarostat.h
+	"Force.h"
+	<string>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\nonbondedforce.h
+	"Context.h"
+	"Force.h"
+	<map>
+	<set>
+	<utility>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\openmmexception.h
+	<exception>
+	<string>
+
+1551318662 c:\openmm\include\openmm\periodictorsionforce.h
+	"Force.h"
+	"Vec3.h"
+	<map>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\rbtorsionforce.h
+	"Force.h"
+	"Vec3.h"
+	<map>
+	<vector>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\rmsdforce.h
+	"Force.h"
+	"Vec3.h"
+	<vector>
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\units.h
+	<cmath>
+
+1551318662 c:\openmm\include\openmm\variablelangevinintegrator.h
+	"Integrator.h"
+	"openmm/Kernel.h"
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\variableverletintegrator.h
+	"Integrator.h"
+	"openmm/Kernel.h"
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\verletintegrator.h
+	"Integrator.h"
+	"openmm/Kernel.h"
+	"internal/windowsExport.h"
+
+1551318662 c:\openmm\include\openmm\virtualsite.h
+	<openmm/Vec3.h>
+	"internal/windowsExport.h"
+	<vector>
+
+1551319794 c:\openmm\include\openmm\serialization\xmlserializer.h
+	"openmm/serialization/SerializationNode.h"
+	"openmm/serialization/SerializationProxy.h"
+	"openmm/OpenMMException.h"
+	"openmm/internal/windowsExport.h"
+	<iosfwd>
+
+1551319793 c:\openmm\include\openmm\serialization\serializationnode.h
+	"openmm/serialization/SerializationProxy.h"
+	"openmm/OpenMMException.h"
+	"openmm/internal/windowsExport.h"
+	<map>
+	<string>
+	<vector>
+
+1551319793 c:\openmm\include\openmm\serialization\serializationproxy.h
+	"openmm/internal/windowsExport.h"
+	<map>
+	<string>
+	<typeinfo>
+
+1551566192 c:\my workplace\my projects\autonomous underwater robot swarm\electromagnetic propulsion system\simulation\mdwater\include\forcefield.h
+	"OpenMM.h"
+
+1551567454 c:\my workplace\my projects\autonomous underwater robot swarm\electromagnetic propulsion system\simulation\mdwater\include\forcefieldintegrator.h
+	"OpenMM.h"
+	"ForceField.h"
+	<vector>
+
+1528014095 c:\my workplace\my projects\autonomous underwater robot swarm\electromagnetic propulsion system\simulation\mdwater\include\rotationmatrix.h
+	<cassert>
+	<cmath>
+	"Matrix3.h"
+
+1536420921 c:\my workplace\my projects\autonomous underwater robot swarm\electromagnetic propulsion system\simulation\mdwater\include\matrix3.h
+	<cassert>
+	"OpenMM.h"
+
+1551567698 source:c:\my workplace\my projects\autonomous underwater robot swarm\electromagnetic propulsion system\simulation\mdwater\src\lorenzforcefieldintegrator.cpp
+	"LorenzForceFieldIntegrator.h"
+
+1551568857 c:\my workplace\my projects\autonomous underwater robot swarm\electromagnetic propulsion system\simulation\mdwater\include\lorenzforcefieldintegrator.h
+	"OpenMM.h"
+	"ForceFieldIntegrator.h"
+	<vector>
+

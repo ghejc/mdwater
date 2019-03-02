@@ -1,5 +1,5 @@
 #include "WaterSimulator.h"
-#include "ForceFieldIntegrator.h"
+#include "LorenzForceFieldIntegrator.h"
 #include <string>
 #include <vector>
 #include <cstdlib>
@@ -120,9 +120,8 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
         charges.push_back(M_charge);
     }
 
-    integrator = new ForceFieldIntegrator(StepSizeInFs * OpenMM::PsPerFs);
+    integrator = new LorenzForceFieldIntegrator(StepSizeInFs * OpenMM::PsPerFs, charges);
     context    = new OpenMM::Context(*system, *integrator);
-    integrator->addForceField(new ElectroMagneticForceField(charges));
 }
 
 static double random()
