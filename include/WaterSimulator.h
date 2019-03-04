@@ -2,8 +2,7 @@
 #define WATER_SIMULATOR_H_
 
 #include "OpenMM.h"
-#include "ForceField.h"
-#include "ForceFieldIntegrator.h"
+#include "LorentzForceIntegrator.h"
 #include <cmath>
 
 #define PARTICLE_M_IS_VIRTUAL
@@ -80,7 +79,7 @@ private:
 
     OpenMM::Context *context;
     OpenMM::System *system;
-    ForceFieldIntegrator *integrator;
+    LorentzForceIntegrator *integrator;
 
     int NonbondedForce_Index;
     int HarmonicBondForce_Index;

@@ -1,9 +1,7 @@
-#include "LorenzForceFieldIntegrator.h"
+#include "LorentzForceIntegrator.h"
 
-LorenzForceFieldIntegrator::LorenzForceFieldIntegrator(double stepSize, std::vector<double> &charges) : ForceFieldIntegrator(stepSize) {
-
-    addForceField(new ElectricForceField(charges));
-    addForceField(new MagneticForceField(charges));
+LorentzForceIntegrator::LorentzForceIntegrator(double stepSize, ElectricField E, MagneticField B, const std::vector<double> &charges) :
+    CustomIntegrator(stepSize), E(E), B(B), q(charges) {
 
     addPerDofVariable("fe", 0);
     addPerDofVariable("fm", 0);
@@ -19,7 +17,7 @@ LorenzForceFieldIntegrator::LorenzForceFieldIntegrator(double stepSize, std::vec
     addConstrainVelocities();
 }
 
-void LorenzForceFieldIntegrator::step(int steps) {
+void LorentzForceIntegrator::step(int steps) {
     if (owner != nullptr) {
         int numParticles = owner->getSystem().getNumParticles();
         if (fe.size() != numParticles) {
@@ -36,18 +34,12 @@ void LorenzForceFieldIntegrator::step(int steps) {
         const std::vector<Vec3> &x = state.getPositions();
         const std::vector<Vec3> &v = state.getVelocities();
 
-        /* evaluate all force fields */
-        std::vector<ForceField *>::iterator it = forceFields.begin();
-        if (*it != nullptr) {
-            for (int i; i < fe.size(); i++) {
-                (*it)->eval(i, state.getTime(),x[i],v[i],fe[i]);
-            }
+        /* evaluate all fields */
+        for (int i; i < fe.size(); i++) {
+            fe[i] = E.evaluate(state.getTime(),x[i]) * q[i];
         }
-        it++;
-        if (*it != nullptr) {
-            for (int i; i < fm.size(); i++) {
-                (*it)->eval(i, state.getTime(),x[i],v[i],fm[i]);
-            }
+        for (int i; i < fm.size(); i++) {
+            fm[i] = v[i].cross(B.evaluate(state.getTime(),x[i])) * q[i];
         }
 
         distributeVirtualForces(fe);

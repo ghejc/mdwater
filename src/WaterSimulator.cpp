@@ -1,5 +1,5 @@
 #include "WaterSimulator.h"
-#include "LorenzForceFieldIntegrator.h"
+#include "LorentzForceIntegrator.h"
 #include <string>
 #include <vector>
 #include <cstdlib>
@@ -120,7 +120,9 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
         charges.push_back(M_charge);
     }
 
-    integrator = new LorenzForceFieldIntegrator(StepSizeInFs * OpenMM::PsPerFs, charges);
+    ElectricField E;
+    MagneticField B;
+    integrator = new LorentzForceIntegrator(StepSizeInFs * OpenMM::PsPerFs, E, B, charges);
     context    = new OpenMM::Context(*system, *integrator);
 }
 

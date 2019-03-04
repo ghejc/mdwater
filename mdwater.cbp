@@ -39,7 +39,6 @@
 					<Add option="/EHs" />
 					<Add option="/W3" />
 					<Add option="/ZI" />
-					<Add option="/Zi" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add option="/D_DEBUG" />
 					<Add directory="C:/OpenMM/include" />
@@ -47,18 +46,16 @@
 				</Compiler>
 				<Linker>
 					<Add option="/debug" />
-					<Add option="/DEBUG" />
 					<Add library="C:/OpenMM/lib/OpenMM.lib" />
 					<Add directory="C:/OpenMM/lib" />
 				</Linker>
 			</Target>
 		</Build>
-		<Unit filename="include/ForceField.h" />
-		<Unit filename="include/ForceFieldIntegrator.h" />
+		<Unit filename="include/LorentzForceIntegrator.h" />
 		<Unit filename="include/Matrix3.h" />
 		<Unit filename="include/RotationMatrix.h" />
 		<Unit filename="include/WaterSimulator.h" />
-		<Unit filename="src/ForceFieldIntegrator.cpp" />
+		<Unit filename="src/LorentzForceIntegrator.cpp" />
 		<Unit filename="src/WaterSimulator.cpp" />
 		<Extensions>
 			<code_completion />
