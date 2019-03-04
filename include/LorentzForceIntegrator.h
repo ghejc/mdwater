@@ -25,7 +25,7 @@ public:
         t0 = 0;
     }
 
-    virtual Vec3 evaluate(double t, const Vec3 &x) {
+    virtual Vec3 operator()(double t, const Vec3 &x) {
         return E0 * cos(freq * (t - t0));
     }
 
@@ -51,7 +51,7 @@ public:
         t0 = 0;
     }
 
-    virtual Vec3 evaluate(double t, const Vec3 &x) {
+    virtual Vec3 operator()(double t, const Vec3 &x) {
         return B0 * cos(freq * (t - t0));
     }
 

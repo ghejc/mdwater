@@ -36,10 +36,10 @@ void LorentzForceIntegrator::step(int steps) {
 
         /* evaluate all fields */
         for (int i; i < fe.size(); i++) {
-            fe[i] = E.evaluate(state.getTime(),x[i]) * q[i];
+            fe[i] = E(state.getTime(),x[i]) * q[i];
         }
         for (int i; i < fm.size(); i++) {
-            fm[i] = v[i].cross(B.evaluate(state.getTime(),x[i])) * q[i];
+            fm[i] = v[i].cross(B(state.getTime(),x[i])) * q[i];
         }
 
         distributeVirtualForces(fe);
