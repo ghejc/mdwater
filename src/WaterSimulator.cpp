@@ -120,9 +120,12 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
         charges.push_back(M_charge);
     }
 
-    ElectricField E;
-    MagneticField B;
-    integrator = new LorentzForceIntegrator(StepSizeInFs * OpenMM::PsPerFs, E, B, charges);
+    // use a Lorentz force integrator with an electric field of 1000V/m pointing in x direction
+    // and a magnetic field of 1T pointing in z direction both with a frequency of 1GHz
+    integrator = new LorentzForceIntegrator(StepSizeInFs * OpenMM::PsPerFs,
+                                            new ElectricField(Vec3(1000,0,0),0.001),
+                                            new MagneticField(Vec3(0,0,1), 0.001),
+                                            charges);
     context    = new OpenMM::Context(*system, *integrator);
 }
 

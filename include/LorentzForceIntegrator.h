@@ -9,61 +9,51 @@ using OpenMM::Vec3; // so we can just say "Vec3" below
 static const double ElectricFieldStrength = 9.648533290731905e-08;
 static const double MagneticFieldStrength = ElectricFieldStrength * 1000;
 
+// base class for an electric field
 class ElectricField {
 
 public:
-    ElectricField() {
-        // electric field amplitude
-        E0[0] = 1000;
-        E0[1] = 0;
-        E0[2] = 0;
+    ElectricField(const Vec3 &E /* V/m */,
+                  double f = 0 /* THz */,
+                  double t = 0 /* ps */) : E0(E), freq(f), t0(t) {
         // convert to MD units
         E0 *= ElectricFieldStrength;
-        // frequency
-        freq = 2 * M_PI * 0.001; // in THz
-        // time offset
-        t0 = 0;
     }
 
     virtual Vec3 operator()(double t, const Vec3 &x) {
-        return E0 * cos(freq * (t - t0));
+        return E0 * cos(2 * M_PI * freq * (t - t0));
     }
 
-private:
-    Vec3 E0; // in V/m
+protected:
+    Vec3 E0; // in MD units
     double freq; // in THz
     double t0; // in ps
 };
 
+// base class for a magnetic field
 class MagneticField {
 
 public:
-    MagneticField() {
-        // magnetic field amplitude
-        B0[0] = 0;
-        B0[1] = 0;
-        B0[2] = 1;
+    MagneticField(const Vec3 &B /* T */,
+                  double f = 0 /* THz */,
+                  double t = 0 /* ps */) : B0(B), freq(f), t0(t) {
         // convert to MD units
         B0 *= MagneticFieldStrength;
-        // frequency
-        freq = 2 * M_PI * 0.001; // in THz
-        // time offset
-        t0 = 0;
     }
 
     virtual Vec3 operator()(double t, const Vec3 &x) {
-        return B0 * cos(freq * (t - t0));
+        return B0 * cos(2 * M_PI * freq * (t - t0));
     }
 
-private:
-    Vec3 B0;  // in T
+protected:
+    Vec3 B0;  // in MD units
     double freq; // in THz
     double t0; // in ps
 };
 
 class LorentzForceIntegrator: public OpenMM::CustomIntegrator {
 public:
-    LorentzForceIntegrator(double stepSize, ElectricField E, MagneticField B, const std::vector<double> &charges);
+    LorentzForceIntegrator(double stepSize, ElectricField *E, MagneticField *B, const std::vector<double> &charges);
 
     void distributeVirtualForces(std::vector<Vec3> &f) {
         /* Check all forces applied to virtual particles and distribute it to the connected real particles.
@@ -78,14 +68,14 @@ public:
                         int particleIndex = site.getParticle(j);
                         f[particleIndex] += f[i] * site.getWeight(j);
                     }
-                    f[i] = f_zero;
+                    f[i] = Vec3();
                 } else if (dynamic_cast<const OpenMM::TwoParticleAverageSite*>(&v) != NULL) {
                     const OpenMM::TwoParticleAverageSite &site = dynamic_cast<const OpenMM::TwoParticleAverageSite &>(v);
                     for(int j = 0; j < site.getNumParticles(); j++) {
                         int particleIndex = site.getParticle(j);
                         f[particleIndex] += f[i] * site.getWeight(j);
                     }
-                    f[i] = f_zero;
+                    f[i] = Vec3();
                 }
             }
         }
@@ -94,9 +84,8 @@ public:
     virtual void step(int steps);
 private:
     std::vector<double> q;
-    Vec3 f_zero;
-    ElectricField E;
-    MagneticField B;
+    ElectricField *E;
+    MagneticField *B;
     std::vector<Vec3> fe;
     std::vector<Vec3> fm;
 };

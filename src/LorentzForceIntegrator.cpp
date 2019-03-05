@@ -1,6 +1,6 @@
 #include "LorentzForceIntegrator.h"
 
-LorentzForceIntegrator::LorentzForceIntegrator(double stepSize, ElectricField E, MagneticField B, const std::vector<double> &charges) :
+LorentzForceIntegrator::LorentzForceIntegrator(double stepSize, ElectricField *E, MagneticField *B, const std::vector<double> &charges) :
     CustomIntegrator(stepSize), E(E), B(B), q(charges) {
 
     addPerDofVariable("fe", 0);
@@ -36,10 +36,10 @@ void LorentzForceIntegrator::step(int steps) {
 
         /* evaluate all fields */
         for (int i; i < fe.size(); i++) {
-            fe[i] = E(state.getTime(),x[i]) * q[i];
+            fe[i] = (*E)(state.getTime(),x[i]) * q[i];
         }
         for (int i; i < fm.size(); i++) {
-            fm[i] = v[i].cross(B(state.getTime(),x[i])) * q[i];
+            fm[i] = v[i].cross((*B)(state.getTime(),x[i])) * q[i];
         }
 
         distributeVirtualForces(fe);
