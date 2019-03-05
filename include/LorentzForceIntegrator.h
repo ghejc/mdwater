@@ -3,6 +3,7 @@
 
 #include "OpenMM.h"
 #include <vector>
+#include <memory>
 
 using OpenMM::Vec3; // so we can just say "Vec3" below
 
@@ -19,6 +20,8 @@ public:
         // convert to MD units
         E0 *= ElectricFieldStrength;
     }
+
+    virtual ~ElectricField() {}
 
     virtual Vec3 operator()(double t, const Vec3 &x) {
         return E0 * cos(2 * M_PI * freq * (t - t0));
@@ -40,6 +43,8 @@ public:
         // convert to MD units
         B0 *= MagneticFieldStrength;
     }
+
+    virtual ~MagneticField() {}
 
     virtual Vec3 operator()(double t, const Vec3 &x) {
         return B0 * cos(2 * M_PI * freq * (t - t0));
@@ -84,8 +89,8 @@ public:
     virtual void step(int steps);
 private:
     std::vector<double> q;
-    ElectricField *E;
-    MagneticField *B;
+    std::unique_ptr<ElectricField> E;
+    std::unique_ptr<MagneticField> B;
     std::vector<Vec3> fe;
     std::vector<Vec3> fm;
 };
