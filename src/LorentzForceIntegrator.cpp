@@ -6,14 +6,20 @@ LorentzForceIntegrator::LorentzForceIntegrator(double stepSize, ElectricField *E
     addPerDofVariable("fe", 0);
     addPerDofVariable("fm", 0);
     addPerDofVariable("xold", 0);
+    addPerDofVariable("t", 0);
+    addPerDofVariable("s", 0);
 
-    // TODO: Velocity Verlet not ideal for Lorentz forces.
+    // Boris integrator.
     addUpdateContextState();
-    addComputePerDof("v", "v + 0.5*dt*(f+fe+fm)/m");
+    addComputePerDof("v", "v + 0.5*dt*(f+fe)/m");
+    addComputePerDof("t", "0.5*dt*fm/m");
+    addComputePerDof("s", "2*t/(1+dot(t,t))");
+    addComputePerDof("v", "v + cross(v,s) + cross(cross(v,t),s)");
+    addComputePerDof("v", "v + 0.5*dt*fe/m");
     addComputePerDof("x", "x + dt*v");
     addComputePerDof("xold", "x");
     addConstrainPositions();
-    addComputePerDof("v", "v + 0.5*dt*(f+fe+fm)/m + (x-xold)/dt");
+    addComputePerDof("v", "v + 0.5*dt*f/m + (x-xold)/dt");
     addConstrainVelocities();
 }
 
@@ -35,11 +41,12 @@ void LorentzForceIntegrator::step(int steps) {
         const std::vector<Vec3> &v = state.getVelocities();
 
         /* evaluate all fields */
-        for (int i; i < fe.size(); i++) {
+        for (int i = 0; i < fe.size(); i++) {
             fe[i] = (*E)(state.getTime(),x[i]) * q[i];
         }
-        for (int i; i < fm.size(); i++) {
-            fm[i] = v[i].cross((*B)(state.getTime(),x[i])) * q[i];
+        for (int i = 0; i < fm.size(); i++) {
+            // fm[i] = v[i].cross((*B)(state.getTime(),x[i])) * q[i];
+            fm[i] = (*B)(state.getTime(),x[i]) * q[i];
         }
 
         distributeVirtualForces(fe);
