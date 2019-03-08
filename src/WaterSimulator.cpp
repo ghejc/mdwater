@@ -32,6 +32,10 @@ const double WaterSimulator::CutoffDistanceInAng = 10.;    // Angstroms
 const double WaterSimulator::Coulomb14Scale = 0.833333;
 const double WaterSimulator::LennardJones14Scale = 0.5;
 
+const Vec3 ElectricFieldInVoltPerMeter(1000,0,0); // electric field in V/m
+const Vec3 MagneticFieldInTesla(0,0,1);           // magnetic field in T
+const double FrequencyInTeraHertz = 0.001;        // frequency in THz
+
 // Values are from tip4pew.xml.
 
 // Hydrogen
@@ -123,8 +127,8 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
     // use a Lorentz force integrator with an electric field of 1000V/m pointing in x direction
     // and a magnetic field of 1T pointing in z direction both with a frequency of 1GHz
     integrator = new LorentzForceIntegrator(StepSizeInFs * OpenMM::PsPerFs,
-                                            new ElectricField(Vec3(1000,0,0),0.001),
-                                            new MagneticField(Vec3(0,0,1), 0.001),
+                                            new ElectricField(ElectricFieldInVoltPerMeter,FrequencyInTeraHertz),
+                                            new MagneticField(MagneticFieldInTesla, FrequencyInTeraHertz),
                                             charges);
     context    = new OpenMM::Context(*system, *integrator);
 }
