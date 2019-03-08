@@ -8,13 +8,15 @@ LorentzForceIntegrator::LorentzForceIntegrator(double stepSize, ElectricField *E
     addPerDofVariable("xold", 0);
     addPerDofVariable("s1", 0);
     addPerDofVariable("s2", 0);
+    addPerDofVariable("s3", 0);
 
     // Boris integrator.
     addUpdateContextState();
     addComputePerDof("v", "v + 0.5*dt*(f+fe)/m");
     addComputePerDof("s1", "0.5*dt*fm/m");
     addComputePerDof("s2", "2*s1/(1+dot(s1,s1))");
-    addComputePerDof("v", "v + cross(v,s2) + cross(cross(v,s1),s2)");
+    addComputePerDof("s3", "cross(v,s1)");
+    addComputePerDof("v", "v + cross(v,s2) + cross(s3,s2)");
     addComputePerDof("v", "v + 0.5*dt*fe/m");
     addComputePerDof("x", "x + dt*v");
     addComputePerDof("xold", "x");

@@ -19,22 +19,22 @@ const double WaterSimulator::AtomicMassUnitsPerKg = 1.66054E-27;
 const double WaterSimulator::MeterPerNm = 1.0E9;
 
 //                     SIMULATION PARAMETERS
-const unsigned int NumberOfMolecules = 10;
-const double Temperature             = 300;   // Kelvins
-const double Density                 = 997;   // kg/m^3
-const double StepSizeInFs            = 0.2;   // integration step size (fs)
-const double ReportIntervalInFs      = 100;   // how often to generate an output frame (fs)
-const double SimulationTimeInPs      = 10;
+unsigned int NumberOfMolecules = 10;
+double Temperature             = 300;   // Kelvins
+double Density                 = 997;   // kg/m^3
+double StepSizeInFs            = 0.2;   // integration step size (fs)
+double ReportIntervalInFs      = 100;   // how often to generate an output frame (fs)
+double SimulationTimeInPs      = 10;
+
+double ElectricFieldAmplitude = 1000;       // electric field in V/m
+double MagneticFieldAmplitude = 1;          // magnetic field in T
+double FrequencyInTeraHertz = 0.001;        // frequency in THz
 
 const double WaterSimulator::FrictionInPerPs     = 91.;    // collisions per picosecond
 const double WaterSimulator::CutoffDistanceInAng = 10.;    // Angstroms
 
 const double WaterSimulator::Coulomb14Scale = 0.833333;
 const double WaterSimulator::LennardJones14Scale = 0.5;
-
-const Vec3 ElectricFieldInVoltPerMeter(1000,0,0); // electric field in V/m
-const Vec3 MagneticFieldInTesla(0,0,1);           // magnetic field in T
-const double FrequencyInTeraHertz = 0.001;        // frequency in THz
 
 // Values are from tip4pew.xml.
 
@@ -124,11 +124,11 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
         charges.push_back(M_charge);
     }
 
-    // use a Lorentz force integrator with an electric field of 1000V/m pointing in x direction
-    // and a magnetic field of 1T pointing in z direction both with a frequency of 1GHz
+    // use a Lorentz force integrator with an electric field pointing in x direction
+    // and a magnetic field pointing in z direction both with a given oscillator frequency
     integrator = new LorentzForceIntegrator(StepSizeInFs * OpenMM::PsPerFs,
-                                            new ElectricField(ElectricFieldInVoltPerMeter,FrequencyInTeraHertz),
-                                            new MagneticField(MagneticFieldInTesla, FrequencyInTeraHertz),
+                                            new ElectricField(Vec3(ElectricFieldAmplitude,0,0),FrequencyInTeraHertz),
+                                            new MagneticField(Vec3(0,0,MagneticFieldAmplitude), FrequencyInTeraHertz),
                                             charges);
     context    = new OpenMM::Context(*system, *integrator);
 }
@@ -405,7 +405,57 @@ myWriteXYZFrame(int frameNum, double timeInPs, const std::vector<double>& atomPo
 // -----------------------------------------------------------------------------
 //                           WATER SIMULATOR MAIN PROGRAM
 // -----------------------------------------------------------------------------
-int main() {
+int main(int argc, char **argv) {
+    if (argc > 1) {
+        // parse command line arguments
+        std::map<std::string,double> options;
+        for(int i = 0; i < argc; i++) {
+            std::string arg(argv[i]);
+            std::size_t pos = arg.find("=");
+            if (pos != std::string::npos) {
+                int val = atof(arg.substr(pos+1, std::string::npos).c_str());
+                options.insert(std::make_pair(arg.substr(0,pos),val));
+            }
+        }
+        std::map<std::string,double>::iterator it;
+        it = options.find("NumberOfMolecules");
+        if (it != options.end()) {
+            NumberOfMolecules = (int)(it->second);
+        }
+        it = options.find("Temperature");
+        if (it != options.end()) {
+            Temperature = it->second;
+        }
+        it = options.find("SimulationTimeInPs");
+        if (it != options.end()) {
+            SimulationTimeInPs = it->second;
+        }
+        it = options.find("StepSizeInFs");
+        if (it != options.end()) {
+            StepSizeInFs = it->second;
+        }
+        it = options.find("Density");
+        if (it != options.end()) {
+            Density = it->second;
+        }
+        it = options.find("ReportIntervalInFs");
+        if (it != options.end()) {
+            ReportIntervalInFs = it->second;
+        }
+        it = options.find("ElectricFieldAmplitude");
+        if (it != options.end()) {
+            ElectricFieldAmplitude = it->second;
+        }
+        it = options.find("MagneticFieldAmplitude");
+        if (it != options.end()) {
+            MagneticFieldAmplitude = it->second;
+        }
+        it = options.find("FrequencyInTeraHertz");
+        if (it != options.end()) {
+            FrequencyInTeraHertz = it->second;
+        }
+    }
+
     // ALWAYS enclose all OpenMM calls with a try/catch block to make sure that
     // usage and runtime errors are caught and reported.
     try {
