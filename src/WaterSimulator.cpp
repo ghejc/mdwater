@@ -28,7 +28,10 @@ double SimulationTimeInPs      = 10;
 
 double ElectricFieldAmplitude = 1000;       // electric field in V/m
 double MagneticFieldAmplitude = 1;          // magnetic field in T
-double FrequencyInTeraHertz = 0.001;        // frequency in THz
+double ElectricFieldFrequencyInTHz = 0.001;        // frequency of the electric field in THz
+double MagneticFieldFrequencyInTHz = 0.001;        // frequency of the magnetic field in THz
+double ElectricFieldPhaseInPs = 0.0;        // phase offset of the electric field in ps
+double MagneticFieldPhaseInPs = 0.0;        // phase offset of the magnetic field in ps
 
 const double WaterSimulator::FrictionInPerPs     = 91.;    // collisions per picosecond
 const double WaterSimulator::CutoffDistanceInAng = 10.;    // Angstroms
@@ -125,17 +128,22 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
     }
 
     // use a Lorentz force integrator with an electric field pointing in x direction
-    // and a magnetic field pointing in z direction both with a given oscillator frequency
+    // and a magnetic field pointing in y direction both with a given oscillator
+    // frequency and phase offset
     integrator = new LorentzForceIntegrator(StepSizeInFs * OpenMM::PsPerFs,
-                                            new ElectricField(Vec3(ElectricFieldAmplitude,0,0),FrequencyInTeraHertz),
-                                            new MagneticField(Vec3(0,0,MagneticFieldAmplitude), FrequencyInTeraHertz),
+                                            new ElectricField(Vec3(ElectricFieldAmplitude,0,0),
+                                                              ElectricFieldFrequencyInTHz,
+                                                              ElectricFieldPhaseInPs),
+                                            new MagneticField(Vec3(0,MagneticFieldAmplitude,0),
+                                                              MagneticFieldFrequencyInTHz,
+                                                              MagneticFieldPhaseInPs),
                                             charges);
     context    = new OpenMM::Context(*system, *integrator);
 }
 
 static double random()
 {
-    return rand()/(double)RAND_MAX;
+    return std::rand()/(double)RAND_MAX;
 }
 
 void WaterSimulator::setRandomPositions(const double boxLengthInNm)
@@ -223,7 +231,7 @@ void WaterSimulator::getSystemState(double& timeInPs,
 #if defined(PARTICLE_M_IS_VIRTUAL)
     const int numberOfAtomsPerMolecule = 3; // no virtual sites
 #else
-    const int numberOfAtomsPerMolecule = 4; // no virtual sites
+    const int numberOfAtomsPerMolecule = 4; // including virtual sites
 #endif // PARTICLE_M_IS_VIRTUAL
     atomPositionsInAng.resize(3 * numberOfAtomsPerMolecule * N);
     int k = 0;
@@ -450,9 +458,21 @@ int main(int argc, char **argv) {
         if (it != options.end()) {
             MagneticFieldAmplitude = it->second;
         }
-        it = options.find("FrequencyInTeraHertz");
+        it = options.find("ElectricFieldFrequencyInTHz");
         if (it != options.end()) {
-            FrequencyInTeraHertz = it->second;
+            ElectricFieldFrequencyInTHz = it->second;
+        }
+        it = options.find("MagneticFieldFrequencyInTHz");
+        if (it != options.end()) {
+            MagneticFieldFrequencyInTHz = it->second;
+        }
+        it = options.find("ElectricFieldPhaseInPs");
+        if (it != options.end()) {
+            ElectricFieldPhaseInPs = it->second;
+        }
+        it = options.find("MagneticFieldPhaseInPs");
+        if (it != options.end()) {
+            MagneticFieldPhaseInPs = it->second;
         }
     }
 
