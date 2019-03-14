@@ -421,7 +421,7 @@ int main(int argc, char **argv) {
             std::string arg(argv[i]);
             std::size_t pos = arg.find("=");
             if (pos != std::string::npos) {
-                int val = atof(arg.substr(pos+1, std::string::npos).c_str());
+                double val = atof(arg.substr(pos+1, std::string::npos).c_str());
                 options.insert(std::make_pair(arg.substr(0,pos),val));
             }
         }
