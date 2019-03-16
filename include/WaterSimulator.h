@@ -71,7 +71,7 @@ public:
 
 private:
 
-    void setRandomPositions(const double boxLengthInNm);
+    double setRandomPositions(const double boxLengthInNm);
 
     void addWaterMolecule();
 

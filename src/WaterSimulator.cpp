@@ -146,17 +146,19 @@ static double random()
     return std::rand()/(double)RAND_MAX;
 }
 
-void WaterSimulator::setRandomPositions(const double boxLengthInNm)
+// puts all molecules at random positions and returns the minimum distance between
+double WaterSimulator::setRandomPositions(const double boxLengthInNm)
 {
     std::vector<Vec3> positions;
     size_t N = context->getMolecules().size();
     // relative coordinates of the atoms in the molecule
     std::vector<Vec3> coords;
     getCenterOfMassCoordinates(coords);
+    double min_dist = boxLengthInNm;
 
     if (N == 1) {
         context->setPositions(coords);
-        return;
+        return min_dist;
     }
     // number of divisions of the box length
     size_t n = (size_t)std::max(1.0, ceil(pow(N, 1.0/3.0)));
@@ -164,6 +166,7 @@ void WaterSimulator::setRandomPositions(const double boxLengthInNm)
     double cellLengthInNm = boxLengthInNm / (double)n;
     size_t i = 0;
     std::vector<size_t> cells;
+    std::map<size_t,size_t> cell_map;
     while ( i < N ) {
         Vec3 randVec( floor(random()*n), floor(random()*n), floor(random()*n));
         size_t cell = (size_t)(randVec[0] + n * (randVec[1] + n * randVec[2]));
@@ -185,10 +188,44 @@ void WaterSimulator::setRandomPositions(const double boxLengthInNm)
            Vec3 x = m.dot(*it);
            positions.push_back(x + randVec);
         }
+        cell_map.insert(std::make_pair(cell,i));
         i++;
     }
-    context->setPositions(positions);
+    // calculates the minimum distance between atoms
+    for (size_t cell : cells) {
+        std::map<size_t,size_t>::iterator it2;
+        Vec3 pos;
+        for( size_t  k = 0; k < coords.size(); k++) {
+            if ((it2 = cell_map.find(cell)) != cell_map.end()) {
+                pos = positions[it2->second + k];
+            } else {
+                continue;
+            }
 
+            std::vector<size_t> neighbor_cells;
+            neighbor_cells.push_back(cell + 1);
+            neighbor_cells.push_back(cell - 1);
+            neighbor_cells.push_back(cell + n);
+            neighbor_cells.push_back(cell - n);
+            neighbor_cells.push_back(cell + n*n);
+            neighbor_cells.push_back(cell - n*n);
+            for (size_t neighbor : neighbor_cells) {
+                if ((it2 = cell_map.find(neighbor)) != cell_map.end()) {
+                    for (size_t j = 0; j < coords.size(); j++) {
+                        Vec3 dist = pos - positions[it2->second + j];
+                        double d = sqrt(dist.dot(dist));
+                        if (d < min_dist) {
+                            min_dist = d;
+                        }
+                    }
+                } else {
+                    continue;
+                }
+            }
+        }
+    }
+    context->setPositions(positions);
+    return min_dist;
 }
 
 void WaterSimulator::initSystemState(double startTemperatureInK, double densityInKgPerM3)
