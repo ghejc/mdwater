@@ -22,7 +22,7 @@ const double WaterSimulator::MeterPerNm = 1.0E9;
 unsigned int NumberOfMolecules = 10;
 double Temperature             = 300;   // Kelvins
 double Density                 = 997;   // kg/m^3
-double StepSizeInFs            = 0.2;   // integration step size (fs)
+double StepSizeInFs            = 0.1;   // integration step size (fs)
 double ReportIntervalInFs      = 100;   // how often to generate an output frame (fs)
 double SimulationTimeInPs      = 10;
 
@@ -195,24 +195,24 @@ double WaterSimulator::setRandomPositions(const double boxLengthInNm)
     for (size_t cell : cells) {
         std::map<size_t,size_t>::iterator it2;
         Vec3 pos;
+        if ((it2 = cell_map.find(cell)) != cell_map.end()) {
+            i = it2->second;
+        } else {
+            continue;
+        }
+        std::vector<size_t> neighbor_cells;
+        neighbor_cells.push_back(cell + 1);
+        neighbor_cells.push_back(cell - 1);
+        neighbor_cells.push_back(cell + n);
+        neighbor_cells.push_back(cell - n);
+        neighbor_cells.push_back(cell + n*n);
+        neighbor_cells.push_back(cell - n*n);
         for( size_t  k = 0; k < coords.size(); k++) {
-            if ((it2 = cell_map.find(cell)) != cell_map.end()) {
-                pos = positions[it2->second + k];
-            } else {
-                continue;
-            }
-
-            std::vector<size_t> neighbor_cells;
-            neighbor_cells.push_back(cell + 1);
-            neighbor_cells.push_back(cell - 1);
-            neighbor_cells.push_back(cell + n);
-            neighbor_cells.push_back(cell - n);
-            neighbor_cells.push_back(cell + n*n);
-            neighbor_cells.push_back(cell - n*n);
+            pos = positions[i * coords.size() + k];
             for (size_t neighbor : neighbor_cells) {
                 if ((it2 = cell_map.find(neighbor)) != cell_map.end()) {
                     for (size_t j = 0; j < coords.size(); j++) {
-                        Vec3 dist = pos - positions[it2->second + j];
+                        Vec3 dist = pos - positions[it2->second * coords.size() + j];
                         double d = sqrt(dist.dot(dist));
                         if (d < min_dist) {
                             min_dist = d;

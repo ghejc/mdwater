@@ -23,6 +23,7 @@ LorentzForceIntegrator::LorentzForceIntegrator(double stepSize, ElectricField *E
     addConstrainPositions();
     addComputePerDof("v", "v + 0.5*dt*f/m + (x-xold)/dt");
     addConstrainVelocities();
+
 }
 
 void LorentzForceIntegrator::step(int steps) {
@@ -36,11 +37,15 @@ void LorentzForceIntegrator::step(int steps) {
         }
     }
 
+    double alpha = 1.0;
+
     for (int n = 0; n < steps; n++) {
         /* get the current positions and velocities */
-        const OpenMM::State state = owner->getState(OpenMM::State::Positions|OpenMM::State::Velocities);
+        const OpenMM::State state = owner->getState(OpenMM::State::Positions|OpenMM::State::Velocities|OpenMM::State::Energy);
         const std::vector<Vec3> &x = state.getPositions();
         const std::vector<Vec3> &v = state.getVelocities();
+
+        double Ekin = state.getKineticEnergy();
 
         /* evaluate all fields */
         for (int i = 0; i < fe.size(); i++) {
@@ -57,6 +62,14 @@ void LorentzForceIntegrator::step(int steps) {
         setPerDofVariableByName("fe", fe);
         setPerDofVariableByName("fm", fm);
         CustomIntegrator::step(1);
+
+        // apply a thermostat
+        alpha = sqrt(state.getKineticEnergy()/Ekin);
+        std::vector<Vec3> v_new;
+        for (const Vec3& vel : v) {
+            v_new.push_back(vel*alpha);
+        }
+        owner->setVelocities(v);
     }
 }
 
