@@ -56,6 +56,7 @@ public:
 
     WaterSimulator(unsigned int numOfMolecules,
                       double temperature = 300,
+                      double densityInKgPerM3 = 1000,
                       double stepSizeInFs = 1);
     ~WaterSimulator() {
         delete context;
@@ -63,7 +64,7 @@ public:
         delete integrator;
     };
 
-    void initSystemState(double startTemperatureInK, double densityInKgPerM3);
+    void initSystemState(double temperatureInK);
 
     void getSystemState(double& timeInPs, std::vector<double>& atomPositionsInAng);
 

@@ -58,7 +58,7 @@ protected:
 
 class LorentzForceIntegrator: public OpenMM::CustomIntegrator {
 public:
-    LorentzForceIntegrator(double stepSize, ElectricField *E, MagneticField *B, const std::vector<double> &charges);
+    LorentzForceIntegrator(double stepSize, ElectricField *E, MagneticField *B, const std::vector<double> &charges, bool applyThermostat = false);
 
     void distributeVirtualForces(std::vector<Vec3> &f) {
         /* Check all forces applied to virtual particles and distribute it to the connected real particles.
@@ -93,6 +93,7 @@ private:
     std::unique_ptr<MagneticField> B;
     std::vector<Vec3> fe;
     std::vector<Vec3> fm;
+    bool applyThermostat;
 };
 
 #endif // LORENZ_FORCE_INTEGRATOR_H_

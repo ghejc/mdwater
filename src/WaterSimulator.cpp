@@ -90,6 +90,7 @@ const double WaterSimulator::HOH_stiffnessInKcalPerRad2 = 100.; // that is e=k(a
 
 WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
                                  double              temperature,
+                                 double              densityInKgPerM3,
                                  double              stepSizeInFs)
 {
     // Load all available OpenMM plugins from their default location.
@@ -126,6 +127,13 @@ WaterSimulator::WaterSimulator ( unsigned int        numOfMolecules,
         charges.push_back(H_charge);
         charges.push_back(M_charge);
     }
+
+    // set periodic boundary conditions
+    double V = numOfMolecules * (O_mass + 2 * H_mass + M_mass) * AtomicMassUnitsPerKg / densityInKgPerM3;
+    const double boxLengthInNm = pow(V, 1./3) * MeterPerNm;
+    system->setDefaultPeriodicBoxVectors(Vec3(boxLengthInNm, 0, 0),
+                                         Vec3(0, boxLengthInNm, 0),
+                                         Vec3(0, 0, boxLengthInNm));
 
     // use a Lorentz force integrator with an electric field pointing in x direction
     // and a magnetic field pointing in y direction both with a given oscillator
@@ -228,32 +236,14 @@ double WaterSimulator::setRandomPositions(const double boxLengthInNm)
     return min_dist;
 }
 
-void WaterSimulator::initSystemState(double startTemperatureInK, double densityInKgPerM3)
+void WaterSimulator::initSystemState(double temperatureInK)
 {
-    size_t N = context->getMolecules().size();
-    double V = N * (O_mass + 2 * H_mass + M_mass) * AtomicMassUnitsPerKg / densityInKgPerM3;
-    const double boxLengthInNm = pow(V, 1./3) * MeterPerNm;
-
-    // Create periodic box
-    system->setDefaultPeriodicBoxVectors(Vec3(boxLengthInNm, 0, 0),
-                                         Vec3(0, boxLengthInNm, 0),
-                                         Vec3(0, 0, boxLengthInNm));
-    /*
-    context->setPeriodicBoxVectors(Vec3(boxLengthInNm, 0, 0),
-                                   Vec3(0, boxLengthInNm, 0),
-                                   Vec3(0, 0, boxLengthInNm));
-    */
-    /*
-    if( system->usesPeriodicBoundaryConditions() ) {
-        printf("System uses periodic boundary conditions with a box of side length %5.3f nm\n", boxLengthInNm);
-    } else {
-        printf("System does not use periodic boundary conditions\n");
-    }
-    printf("The box contains %d water molecules\n", N);
-    */
-
+    Vec3 a,b,c;
+    system->getDefaultPeriodicBoxVectors(a,b,c);
+    double V = a.dot(b.cross(c));
+    const double boxLengthInNm = pow(V, 1./3);
     setRandomPositions(boxLengthInNm);
-    context->setVelocitiesToTemperature(startTemperatureInK);
+    context->setVelocitiesToTemperature(temperatureInK);
 }
 
 void WaterSimulator::getSystemState(double& timeInPs,
@@ -517,8 +507,8 @@ int main(int argc, char **argv) {
     // usage and runtime errors are caught and reported.
     try {
         // Set up OpenMM data structures; return handle and OpenMM Platform name.
-        WaterSimulator simulator(NumberOfMolecules, Temperature, StepSizeInFs);// output
-        simulator.initSystemState(Temperature, Density);
+        WaterSimulator simulator(NumberOfMolecules, Temperature, Density, StepSizeInFs);// output
+        simulator.initSystemState(Temperature);
         simulator.run(SimulationTimeInPs);
 
         return 0; // Normal return from main.

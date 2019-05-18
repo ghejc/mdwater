@@ -1,7 +1,7 @@
 #include "LorentzForceIntegrator.h"
 
-LorentzForceIntegrator::LorentzForceIntegrator(double stepSize, ElectricField *E, MagneticField *B, const std::vector<double> &charges) :
-    CustomIntegrator(stepSize), E(E), B(B), q(charges) {
+LorentzForceIntegrator::LorentzForceIntegrator(double stepSize, ElectricField *E, MagneticField *B, const std::vector<double> &charges, bool applyThermostat) :
+    CustomIntegrator(stepSize), E(E), B(B), q(charges), applyThermostat(applyThermostat) {
 
     addPerDofVariable("fe", 0);
     addPerDofVariable("fm", 0);
@@ -64,12 +64,14 @@ void LorentzForceIntegrator::step(int steps) {
         CustomIntegrator::step(1);
 
         // apply a thermostat
-        alpha = sqrt(state.getKineticEnergy()/Ekin);
-        std::vector<Vec3> v_new;
-        for (const Vec3& vel : v) {
-            v_new.push_back(vel*alpha);
+        if (applyThermostat) {
+            alpha = sqrt(state.getKineticEnergy()/Ekin);
+            std::vector<Vec3> v_new;
+            for (const Vec3& vel : v) {
+                v_new.push_back(vel*alpha);
+            }
+            owner->setVelocities(v);
         }
-        owner->setVelocities(v);
     }
 }
 
