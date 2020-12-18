@@ -1,5 +1,7 @@
 *.xyz
 *.pyc
+*.idb
+*.pdb
 .ipynb_checkpoints
 variables.pickle
 .prof

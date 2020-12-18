@@ -19,12 +19,12 @@
 					<Add option="/W3" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add option="/DNDEBUG" />
-					<Add directory="C:/OpenMM/include" />
+					<Add directory="%OPENMM%/include" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
-					<Add library="C:/OpenMM/lib/OpenMM.lib" />
-					<Add directory="C:/OpenMM/lib" />
+					<Add library="%OPENMM%/lib/OpenMM.lib" />
+					<Add directory="%OPENMM%/lib" />
 				</Linker>
 			</Target>
 			<Target title="Debug">
@@ -35,19 +35,20 @@
 				<Option compiler="microsoft_visual_c_2015_64-bit" />
 				<Option use_console_runner="0" />
 				<Compiler>
-					<Add option="/MLd" />
+					<Add option="/MTd" />
 					<Add option="/EHs" />
 					<Add option="/W3" />
 					<Add option="/ZI" />
-					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="/Zi" />
+					<Add option="-D_USE_MATH_DEFINES /FS" />
 					<Add option="/D_DEBUG" />
-					<Add directory="C:/OpenMM/include" />
+					<Add directory="%OPENMM%/include" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="/debug" />
-					<Add library="C:/OpenMM/lib/OpenMM.lib" />
-					<Add directory="C:/OpenMM/lib" />
+					<Add library="%OPENMM%/lib/OpenMM.lib" />
+					<Add directory="%OPENMM%/lib" />
 				</Linker>
 			</Target>
 		</Build>

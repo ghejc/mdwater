@@ -75,4 +75,8 @@ void LorentzForceIntegrator::step(int steps) {
     }
 }
 
+bool LorentzForceIntegrator::kineticEnergyRequiresForce() const {
+    return false;
+}
+
 

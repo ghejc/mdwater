@@ -10,50 +10,42 @@ using OpenMM::Vec3; // so we can just say "Vec3" below
 static const double ElectricFieldStrength = 9.648533290731905e-08;
 static const double MagneticFieldStrength = ElectricFieldStrength * 1000;
 
-// base class for an electric field
-class ElectricField {
+//base class for oscillating fields
+class OscillatingField {
 
 public:
-    ElectricField(const Vec3 &E /* V/m */,
-                  double f = 0 /* THz */,
-                  double t = 0 /* ps */) : E0(E), freq(f), t0(t) {
-        // convert to MD units
-        E0 *= ElectricFieldStrength;
-    }
+    OscillatingField(const Vec3 &F = Vec3(),
+                     double f = 0 /* THz */,
+                     double t = 0 /* ps */) : F0(F), freq(f), t0(t) {}
 
-    virtual ~ElectricField() {}
+    virtual ~OscillatingField() {}
 
-    virtual Vec3 operator()(double t, const Vec3 &x) {
-        return E0 * cos(2 * M_PI * freq * (t - t0));
+    Vec3 operator()(double t, const Vec3 &x) {
+        return F0 * cos(2 * M_PI * freq * (t - t0));
     }
 
 protected:
-    Vec3 E0; // in MD units
+    Vec3 F0; // in MD units
     double freq; // in THz
     double t0; // in ps
 };
 
-// base class for a magnetic field
-class MagneticField {
+// base class for an electric field
+class ElectricField : public OscillatingField {
 
 public:
-    MagneticField(const Vec3 &B /* T */,
+    ElectricField(const Vec3 &E = Vec3() /* V/m */,
                   double f = 0 /* THz */,
-                  double t = 0 /* ps */) : B0(B), freq(f), t0(t) {
-        // convert to MD units
-        B0 *= MagneticFieldStrength;
-    }
+                  double t = 0 /* ps */) : OscillatingField(E * ElectricFieldStrength, f, t) {}
+};
 
-    virtual ~MagneticField() {}
+// base class for a magnetic field
+class MagneticField: public OscillatingField {
 
-    virtual Vec3 operator()(double t, const Vec3 &x) {
-        return B0 * cos(2 * M_PI * freq * (t - t0));
-    }
-
-protected:
-    Vec3 B0;  // in MD units
-    double freq; // in THz
-    double t0; // in ps
+public:
+    MagneticField(const Vec3 &B = Vec3() /* T */,
+                  double f = 0 /* THz */,
+                  double t = 0 /* ps */) : OscillatingField(B * MagneticFieldStrength, f, t) {}
 };
 
 class LorentzForceIntegrator: public OpenMM::CustomIntegrator {
@@ -87,6 +79,7 @@ public:
     }
 
     virtual void step(int steps);
+    virtual bool kineticEnergyRequiresForce() const;
 private:
     std::vector<double> q;
     std::unique_ptr<ElectricField> E;

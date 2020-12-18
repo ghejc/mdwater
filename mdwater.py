@@ -20,4 +20,12 @@ import subprocess
 cwd = os.getcwd()
 cmd = '{}\\bin\\Release\\mdwater.exe'.format(cwd)
 with open('{}\\output.xyz'.format(cwd), "w") as outfile:
-    subprocess.call([cmd,"NumberOfMolecules=10","SimulationTimeInPs=10"], stdout=outfile)
+    subprocess.call([cmd,
+    "NumberOfMolecules=10",
+    "SimulationTimeInPs=10",
+    "StepSizeInFs=0.2",
+    "ReportIntervalInFs=2",
+    "ElectricFieldAmplitude=0.0",
+    "MagneticFieldAmplitude=0.0",
+    "ElectricFieldFrequencyInTHz=0.0",
+    "MagneticFieldFrequencyInTHz=0.0"], stdout=outfile)

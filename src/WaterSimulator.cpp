@@ -34,7 +34,7 @@ double ElectricFieldPhaseInPs = 0.0;        // phase offset of the electric fiel
 double MagneticFieldPhaseInPs = 0.0;        // phase offset of the magnetic field in ps
 
 const double WaterSimulator::FrictionInPerPs     = 91.;    // collisions per picosecond
-const double WaterSimulator::CutoffDistanceInAng = 10.;    // Angstroms
+const double WaterSimulator::CutoffDistanceInAng = 1.;    // Angstroms
 
 const double WaterSimulator::Coulomb14Scale = 0.833333;
 const double WaterSimulator::LennardJones14Scale = 0.5;
